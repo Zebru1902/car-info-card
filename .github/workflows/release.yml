@@ -1,7 +1,7 @@
 name: Release
 
-# Baut die Karte bei jedem veröffentlichten Release und hängt
-# car-info-card.js an. Der Marketplace sucht die Datei zuerst am Release.
+# Builds the card for every published release and attaches
+# car-info-card.js. The Marketplace looks for the file on the release first.
 on:
   release:
     types: [published]
@@ -20,7 +20,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: Datei an das Release hängen
+      - name: Attach the file to the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ github.event.release.tag_name }}" dist/car-info-card.js --clobber

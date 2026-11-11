@@ -1,11 +1,11 @@
-// Prüft den Karten-Editor im Browser (mit ha-form-Ersatz aus preview/).
+// Tests the card editor in the browser (with the ha-form stand-in from preview/).
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { startServer } from "./server.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
-const P = "sensor.mein_auto_";
+const P = "sensor.my_car_";
 
 const { server, url } = await startServer();
 const browser = await chromium.launch();
@@ -26,67 +26,68 @@ const step = async (name, fn) => {
 };
 
 try {
-  // 1. Leere Konfiguration: Karte zeigt Hinweis statt Fehler
-  await step("leere Konfiguration", async () => {
-    await page.evaluate(() => window.renderEditor({ scenario: "abgesteckt", theme: "light", config: { entities: {} } }));
+  // 1. Empty config: the card shows a hint instead of an error
+  await step("empty config", async () => {
+    await page.evaluate(() =>
+      window.renderEditor({ scenario: "unplugged", theme: "light", config: { entities: {} } })
+    );
     const hint = await page.locator("car-info-card .hint").textContent();
-    assert.match(hint, /Ladestand/);
+    assert.match(hint, /battery level/);
   });
 
-  // 2. Pflicht-Entität wählen
-  await step("Ladestand wählen", async () => {
-    await field(1, "battery").selectOption(P + "ladestand");
-    assert.equal((await cfg()).entities.battery, P + "ladestand");
+  // 2. Select the required entity
+  await step("select battery level", async () => {
+    await field(1, "battery").selectOption(P + "battery_level");
+    assert.equal((await cfg()).entities.battery, P + "battery_level");
     assert.equal(await page.locator("car-info-card .soc").textContent(), "35 %");
   });
 
-  // 3. Name setzen, leeren Namen wieder entfernen
-  await step("Name", async () => {
-    await field(0, "name").fill("Mein Auto");
+  // 3. Set a name, remove an empty name again
+  await step("name", async () => {
+    await field(0, "name").fill("My car");
     await field(0, "name").dispatchEvent("change");
-    assert.equal((await cfg()).name, "Mein Auto");
+    assert.equal((await cfg()).name, "My car");
     await field(0, "name").fill("");
     await field(0, "name").dispatchEvent("change");
     assert.equal("name" in (await cfg()), false);
   });
 
-  // 4. Werte hinzufügen, verschieben, entfernen
-  await step("Werte hinzufügen", async () => {
+  // 4. Add, move, rename and remove values
+  await step("add values", async () => {
     const add = () => editor.locator(".add ha-form label[data-name=entity] select");
-    await add().selectOption(P + "kilometerstand");
-    await add().selectOption(P + "reichweite");
-    await add().selectOption(P + "ladetyp");
+    await add().selectOption(P + "odometer");
+    await add().selectOption(P + "range");
+    await add().selectOption(P + "charging_type");
     assert.deepEqual((await cfg()).values.map((v) => v.entity),
-      [P + "kilometerstand", P + "reichweite", P + "ladetyp"]);
+      [P + "odometer", P + "range", P + "charging_type"]);
     assert.equal(await page.locator("car-info-card .value").count(), 3);
   });
-  await step("Wert verschieben", async () => {
-    await editor.locator(".value-row").nth(2).locator("button[title='Nach oben']").click();
+  await step("move value", async () => {
+    await editor.locator(".value-row").nth(2).locator("button[title='Move up']").click();
     assert.deepEqual((await cfg()).values.map((v) => v.entity),
-      [P + "kilometerstand", P + "ladetyp", P + "reichweite"]);
+      [P + "odometer", P + "charging_type", P + "range"]);
   });
-  await step("Wert benennen", async () => {
+  await step("rename value", async () => {
     const name = editor.locator(".value-row").nth(0).locator("label[data-name=name] input");
     await name.fill("km");
     await name.dispatchEvent("change");
-    assert.deepEqual((await cfg()).values[0], { entity: P + "kilometerstand", name: "km" });
+    assert.deepEqual((await cfg()).values[0], { entity: P + "odometer", name: "km" });
   });
-  await step("Wert entfernen", async () => {
-    await editor.locator(".value-row").nth(1).locator("button[title='Entfernen']").click();
-    assert.deepEqual((await cfg()).values.map((v) => v.entity),
-      [P + "kilometerstand", P + "reichweite"]);
+  await step("remove value", async () => {
+    await editor.locator(".value-row").nth(1).locator("button[title='Remove']").click();
+    assert.deepEqual((await cfg()).values.map((v) => v.entity), [P + "odometer", P + "range"]);
   });
 
-  // 5. Laden: Zustände und Leistungsstufen
-  await step("Ladezustände", async () => {
-    await field(1, "charging_state").selectOption(P + "ladezustand");
+  // 5. Charging: states and power levels
+  await step("charging states", async () => {
+    await field(1, "charging_state").selectOption(P + "charging_state");
     assert.equal("charging_states" in (await cfg()), false);
     await forms.nth(2).locator("input[value=conserving]").check();
     assert.deepEqual((await cfg()).charging_states, ["charging", "conserving"]);
     await forms.nth(2).locator("input[value=conserving]").uncheck();
     assert.equal("charging_states" in (await cfg()), false);
   });
-  await step("Leistungsstufen", async () => {
+  await step("power levels", async () => {
     await field(2, "power_2").fill("22");
     await field(2, "power_2").dispatchEvent("change");
     assert.deepEqual((await cfg()).power_levels, [3.7, 22, 50]);
@@ -95,8 +96,8 @@ try {
     assert.equal("power_levels" in (await cfg()), false);
   });
 
-  // 6. Farben ändern und zurücksetzen
-  await step("Farben", async () => {
+  // 6. Change and reset colors
+  await step("colors", async () => {
     const color = editor.locator(".colors input").nth(0);
     await color.evaluate((el) => {
       el.value = "#123456";
@@ -108,16 +109,25 @@ try {
     assert.equal("colors" in (await cfg()), false);
   });
 
-  // 7. Kopfzeile ausblenden
-  await step("Kopfzeile", async () => {
+  // 7. Hide the header
+  await step("header", async () => {
     await field(0, "show_name").uncheck();
     assert.equal((await cfg()).show_name, false);
     await field(0, "show_name").check();
     assert.equal("show_name" in (await cfg()), false);
   });
 
-  assert.deepEqual(errors, [], "Seitenfehler: " + errors.join("; "));
-  console.log("Alle Editor-Tests bestanden.");
+  // 8. German UI when Home Assistant is set to German
+  await step("German translation", async () => {
+    await page.evaluate(() =>
+      window.renderEditor({ scenario: "unplugged", theme: "light", language: "de" })
+    );
+    assert.equal(await editor.locator("h3").first().textContent(), "Allgemein");
+    assert.equal(await editor.locator(".value-row button").first().getAttribute("title"), "Nach oben");
+  });
+
+  assert.deepEqual(errors, [], "Page errors: " + errors.join("; "));
+  console.log("All editor tests passed.");
 } finally {
   await browser.close();
   server.close();

@@ -1,6 +1,6 @@
-// Vereinfachter Ersatz für das HA-Element ha-form, nur für Vorschau und Tests.
-// Bildet die verwendeten Selektoren mit nativen Eingabefeldern nach; das
-// Aussehen entspricht NICHT dem echten Home-Assistant-Editor.
+// Simplified stand-in for the Home Assistant element ha-form, for the preview
+// and tests only. It mimics the selectors used with native inputs; it does NOT
+// look like the real Home Assistant editor.
 class StubHaForm extends HTMLElement {
   set hass(v) { this._hass = v; this._render(); }
   set data(v) { this._data = v || {}; this._render(); }
@@ -31,7 +31,7 @@ class StubHaForm extends HTMLElement {
       input = document.createElement("select");
       const dom = sel.entity.filter?.domain;
       const ids = Object.keys(this._hass?.states || {}).filter((id) => !dom || id.startsWith(dom + "."));
-      input.append(new Option("– keine –", ""));
+      input.append(new Option("– none –", ""));
       ids.forEach((id) => input.append(new Option(id, id)));
       input.value = val || "";
       input.onchange = () => this._emit(s.name, input.value || undefined);

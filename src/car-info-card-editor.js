@@ -5,11 +5,12 @@ import {
   DEFAULT_POWER_LEVELS,
   fireEvent,
 } from "./const.js";
+import { localize } from "./localize.js";
 
 const COLOR_NAMES = ["0–20 %", "20–40 %", "40–60 %", "60–80 %", "80–100 %"];
 
-// Bekannte Ladezustände einer verbreiteten Fahrzeug-Integration; weitere Werte kommen aus dem
-// options-Attribut der gewählten Entität oder werden frei eingegeben.
+// Charging states used by at least one common vehicle integration. More values
+// come from the options attribute of the selected entity or can be typed in.
 const KNOWN_CHARGING_STATES = [
   "charging",
   "connect_cable",
@@ -18,30 +19,6 @@ const KNOWN_CHARGING_STATES = [
   "discharging",
   "charging_interrupted",
 ];
-
-const LABELS = {
-  name: "Name",
-  show_name: "Kopfzeile anzeigen (Name, Kennzeichen)",
-  image: "Eigenes Bild (URL, z. B. /local/auto.png)",
-  battery: "Ladestand (Pflicht)",
-  charging_power: "Ladeleistung",
-  charging_state: "Ladezustand",
-  plate: "Kennzeichen",
-  charging_states: "Zustände, die als Laden gelten",
-  power_1: "Stufe 1 bis",
-  power_2: "Stufe 2 bis",
-  power_3: "Stufe 3 bis (darüber Stufe 4)",
-  entity: "Entität",
-  value_name: "Bezeichnung (leer = Name der Entität)",
-  icon: "Symbol (leer = Symbol der Entität)",
-};
-
-const HELPERS = {
-  image: "Leer lassen für die eingebaute Silhouette.",
-  charging_state:
-    "Ohne Ladezustand gilt das Auto als ladend, sobald die Ladeleistung über 0 liegt.",
-  charging_states: "Standard: charging",
-};
 
 const GENERAL_SCHEMA = [
   { name: "name", selector: { text: {} } },
@@ -79,8 +56,8 @@ const sameArray = (a, b) =>
 
 const isEmpty = (v) => v === undefined || v === null || v === "";
 
-// Lädt ha-form & Co., falls der Editor vor den eingebauten Karten geöffnet wird.
-// ⚠️ NICHT VERIFIZIERT in HA 2026.11: Verfügbarkeit von window.loadCardHelpers.
+// Loads ha-form and friends in case the editor opens before any built-in card editor.
+// ⚠️ NOT VERIFIED in HA 2026.11: availability of window.loadCardHelpers.
 async function loadHaComponents() {
   if (customElements.get("ha-form") && customElements.get("ha-entity-picker")) return;
   if (!window.loadCardHelpers) return;
@@ -91,7 +68,7 @@ async function loadHaComponents() {
       await card.constructor.getConfigElement();
     }
   } catch (e) {
-    // Editor funktioniert dann eingeschränkt; YAML-Modus bleibt nutzbar.
+    // The editor is limited then; YAML mode still works.
   }
 }
 
@@ -118,11 +95,11 @@ class CarInfoCardEditor extends LitElement {
     };
   }
 
-  // ---------- Konfiguration schreiben ----------
+  // ---------- Writing the config ----------
 
   _commit(config) {
     const out = { ...config };
-    // Leere und Standardwerte nicht in die Konfiguration schreiben
+    // Do not write empty or default values to the config
     for (const key of ["name", "image"]) if (isEmpty(out[key])) delete out[key];
     if (out.show_name === true) delete out.show_name;
     const entities = {};
@@ -199,7 +176,7 @@ class CarInfoCardEditor extends LitElement {
     const entity = ev.detail.value && ev.detail.value.entity;
     if (!entity) return;
     this._commit({ ...this._config, values: [...this._config.values, { entity }] });
-    // Auswahlfeld wieder leeren
+    // Clear the picker again
     ev.target.data = {};
   }
 
@@ -214,14 +191,18 @@ class CarInfoCardEditor extends LitElement {
     this._commit(rest);
   }
 
-  // ---------- Darstellung ----------
+  // ---------- Rendering ----------
+
+  _t(key, vars) {
+    return localize(this.hass, key, vars);
+  }
 
   _label = (schema) => {
-    if (schema.name === "name" && schema._value) return LABELS.value_name;
-    return LABELS[schema.name] || schema.name;
+    if (schema.name === "name" && schema._value) return this._t("label.value_name");
+    return this._t(`label.${schema.name}`) || schema.name;
   };
 
-  _helper = (schema) => HELPERS[schema.name];
+  _helper = (schema) => this._t(`helper.${schema.name}`);
 
   _chargingSchema() {
     const stateObj =
@@ -273,7 +254,7 @@ class CarInfoCardEditor extends LitElement {
 
     return html`
       <div class="section">
-        <h3>Allgemein</h3>
+        <h3>${this._t("editor.general")}</h3>
         ${this._form(
           GENERAL_SCHEMA,
           { name: cfg.name || "", show_name: cfg.show_name !== false, image: cfg.image || "" },
@@ -282,16 +263,13 @@ class CarInfoCardEditor extends LitElement {
       </div>
 
       <div class="section">
-        <h3>Entitäten</h3>
+        <h3>${this._t("editor.entities")}</h3>
         ${this._form(ENTITY_SCHEMA, cfg.entities, this._entitiesChanged)}
       </div>
 
       <div class="section">
-        <h3>Laden</h3>
-        <p class="note">
-          Der Blitz ist grün, solange das Auto lädt. Puls und Leuchten werden mit
-          steigender Ladeleistung stärker (4 Stufen).
-        </p>
+        <h3>${this._t("editor.charging")}</h3>
+        <p class="note">${this._t("editor.charging_note")}</p>
         ${this._form(
           this._chargingSchema(),
           {
@@ -305,19 +283,19 @@ class CarInfoCardEditor extends LitElement {
       </div>
 
       <div class="section">
-        <h3>Werte rund um das Auto</h3>
-        <p class="note">Die erste Hälfte steht links, die zweite rechts.</p>
+        <h3>${this._t("editor.values")}</h3>
+        <p class="note">${this._t("editor.values_note")}</p>
         ${cfg.values.map(
           (v, i) => html`
             <div class="value-row">
               <div class="value-head">
-                <span class="badge">${i < half ? "links" : "rechts"} · ${i + 1}</span>
+                <span class="badge">${this._t(i < half ? "editor.left" : "editor.right")} · ${i + 1}</span>
                 <span class="spacer"></span>
-                ${this._iconButton(PATH_UP, "Nach oben", i === 0, () => this._moveValue(i, -1))}
-                ${this._iconButton(PATH_DOWN, "Nach unten", i === cfg.values.length - 1, () =>
+                ${this._iconButton(PATH_UP, this._t("editor.move_up"), i === 0, () => this._moveValue(i, -1))}
+                ${this._iconButton(PATH_DOWN, this._t("editor.move_down"), i === cfg.values.length - 1, () =>
                   this._moveValue(i, 1)
                 )}
-                ${this._iconButton(PATH_DELETE, "Entfernen", false, () => this._removeValue(i))}
+                ${this._iconButton(PATH_DELETE, this._t("editor.remove"), false, () => this._removeValue(i))}
               </div>
               ${this._form(valueSchema, v, (ev) => this._valueChanged(i, ev))}
             </div>
@@ -329,12 +307,12 @@ class CarInfoCardEditor extends LitElement {
             {},
             this._addValue
           )}
-          <span class="note">Entität wählen, um einen Wert hinzuzufügen.</span>
+          <span class="note">${this._t("editor.add_note")}</span>
         </div>
       </div>
 
       <div class="section">
-        <h3>Farben der Batteriesegmente</h3>
+        <h3>${this._t("editor.colors")}</h3>
         <div class="colors">
           ${colors.map(
             (c, i) => html`
@@ -350,7 +328,7 @@ class CarInfoCardEditor extends LitElement {
           )}
         </div>
         <button class="text-button" @click=${this._resetColors} ?disabled=${!cfg.colors}>
-          Standardfarben
+          ${this._t("editor.reset_colors")}
         </button>
       </div>
     `;

@@ -6,11 +6,12 @@ import {
   DEFAULT_POWER_LEVELS,
   fireEvent,
 } from "./const.js";
+import { localize, browserLanguageString } from "./localize.js";
 import "./car-info-card-editor.js";
 
 const UNAVAILABLE = ["unknown", "unavailable", "none", ""];
 
-// Geometrie der Batterie (viewBox 0 0 220 100)
+// Battery geometry (viewBox 0 0 220 100)
 const BAT = { x: 12, y: 12, w: 180, h: 76, gap: 6, segments: 5 };
 
 class CarInfoCard extends LitElement {
@@ -41,16 +42,16 @@ class CarInfoCard extends LitElement {
 
   setConfig(config) {
     if (!config) {
-      throw new Error("Ungültige Konfiguration.");
+      throw new Error("Invalid configuration.");
     }
     if (config.entities !== undefined && typeof config.entities !== "object") {
-      throw new Error("entities muss ein Objekt sein.");
+      throw new Error("entities must be an object.");
     }
     if (config.values && !Array.isArray(config.values)) {
-      throw new Error("values muss eine Liste sein.");
+      throw new Error("values must be a list.");
     }
     if (config.colors && (!Array.isArray(config.colors) || config.colors.length !== 5)) {
-      throw new Error("colors muss genau 5 Farben enthalten.");
+      throw new Error("colors must contain exactly 5 colors.");
     }
     this._config = {
       show_name: true,
@@ -71,7 +72,7 @@ class CarInfoCard extends LitElement {
     return { columns: 12, min_columns: 6 };
   }
 
-  // ---------- Werte ----------
+  // ---------- Values ----------
 
   _stateObj(entityId) {
     return entityId && this.hass ? this.hass.states[entityId] : undefined;
@@ -116,7 +117,7 @@ class CarInfoCard extends LitElement {
     return this._powerKw() > 0;
   }
 
-  // 0 = lädt nicht, 1–4 = Stufe nach Ladeleistung
+  // 0 = not charging, 1–4 = level by charging power
   _chargeLevel() {
     if (!this._isCharging()) return 0;
     const kw = this._powerKw();
@@ -129,7 +130,7 @@ class CarInfoCard extends LitElement {
     if (entityId) fireEvent(this, "hass-more-info", { entityId });
   }
 
-  // ---------- Darstellung ----------
+  // ---------- Rendering ----------
 
   render() {
     if (!this._config || !this.hass) return nothing;
@@ -137,7 +138,7 @@ class CarInfoCard extends LitElement {
     if (!cfg.entities.battery) {
       return html`<ha-card>
         <div class="hint">
-          Bitte im Editor die Entität für den Ladestand (entities.battery) wählen.
+          ${localize(this.hass, "card.hint")}
         </div>
       </ha-card>`;
     }
@@ -219,7 +220,7 @@ class CarInfoCard extends LitElement {
           : nothing}
         <div class="text">
           <span class="label">${name}</span>
-          <span class="state">${stateObj ? this._formatState(stateObj) : "nicht gefunden"}</span>
+          <span class="state">${stateObj ? this._formatState(stateObj) : localize(this.hass, "card.not_found")}</span>
         </div>
       </div>
     `;
@@ -255,8 +256,9 @@ class CarInfoCard extends LitElement {
         viewBox="0 0 220 100"
         role="img"
         aria-label=${soc === undefined
-          ? "Ladestand unbekannt"
-          : `Ladestand ${Math.round(soc)} %${level > 0 ? ", lädt" : ""}`}
+          ? localize(this.hass, "card.soc_unknown")
+          : localize(this.hass, "card.soc", { soc: Math.round(soc) }) +
+            (level > 0 ? `, ${localize(this.hass, "card.charging")}` : "")}
       >
         <rect class="shell-bg" x="4" y="4" width="196" height="92" rx="12"></rect>
         ${segments}
@@ -272,7 +274,7 @@ class CarInfoCard extends LitElement {
     `;
   }
 
-  // Eigene, allgemeine SUV-Silhouette (Seitenansicht, Front rechts)
+  // Own generic SUV silhouette (side view, front on the right)
   _renderCar() {
     return html`
       <svg class="car-svg" viewBox="0 0 400 150" aria-hidden="true">
@@ -507,7 +509,7 @@ class CarInfoCard extends LitElement {
         font-weight: 500;
       }
 
-      /* Laden: Blitz grün, Puls und Größe nach Ladeleistung */
+      /* Charging: green bolt, pulse and size by charging power */
       .battery:not(.level-0) .bolt path {
         fill: var(--cic-bolt-on);
         animation: cic-pulse var(--cic-speed) ease-in-out infinite;
@@ -571,7 +573,7 @@ class CarInfoCard extends LitElement {
         }
       }
 
-      /* Schmale Karte: Auto oben, Werte darunter in zwei Spalten */
+      /* Narrow card: car on top, values below in two columns */
       @container (max-width: 440px) {
         .layout {
           grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -597,8 +599,7 @@ if (!customElements.get("car-info-card")) {
   window.customCards.push({
     type: "car-info-card",
     name: "Car Info Card",
-    description:
-      "Auto-Karte mit Batterie in 5 Segmenten, Lade-Blitz und frei wählbaren Werten.",
+    description: browserLanguageString("card.description"),
     preview: true,
   });
   console.info(

@@ -1,14 +1,12 @@
 # Car Info Card
 
-**English** · [Deutsch](README.de.md)
-
 A Home Assistant dashboard card for electric cars: a generic SUV silhouette with a battery in the middle, split into 5 segments of 20 % each (red, orange, yellow, light green, dark green), and a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its pulse, glow and size follow the charging power. Any values you like (odometer, range, charging power, time to full, target temperature, …) are shown around the car.
 
-> Status: **0.2.0**, early version. Not yet tested in a real Home Assistant during charging. The card UI is in German.
+> Status: **0.2.0**, early version. Not yet tested in a real Home Assistant during charging.
 
-![Unplugged](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/abgesteckt-hell.png)
-![AC charging](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/laden-ac-hell.png)
-![DC charging, dark theme](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/laden-dc-dunkel.png)
+![Unplugged](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/unplugged-light.png)
+![AC charging](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/charging-ac-light.png)
+![DC charging, dark theme](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/charging-dc-dark.png)
 
 ## Features
 
@@ -19,6 +17,7 @@ A Home Assistant dashboard card for electric cars: a generic SUV silhouette with
 - Optional own image instead of the built-in silhouette
 - Visual card editor
 - Light and dark themes, respects "reduced motion"
+- User interface in English and German (follows the Home Assistant language)
 
 <!-- ha-marketplace:exclude-start -->
 ## Installation
@@ -73,6 +72,10 @@ values:
 | `image` | – | Own image instead of the silhouette, e.g. `/local/car.png` |
 | `values` | `[]` | List of `entity` (+ optional `name`, `icon`); first half on the left, second half on the right |
 
+![Card editor (preview)](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/editor-light.png)
+
+The editor screenshot uses a simplified stand-in for Home Assistant's form element (`preview/ha-form-stub.js`); in Home Assistant the fields look as usual. ⚠️ NOT VERIFIED: look and behaviour of the editor in a real Home Assistant 2026.11.
+
 Tapping a value or the battery opens the entity's more-info dialog. Values are formatted by Home Assistant itself, so units and translations come from the integration.
 
 ## Development
@@ -83,6 +86,8 @@ npm run build     # builds dist/car-info-card.js (Lit bundled)
 npm run preview   # build + Playwright screenshots in docs/screenshots
 npm test          # build + editor test in the browser (Playwright)
 ```
+
+`preview/index.html` simulates the `hass` object with example values. UI strings live in `src/localize.js`; add a language there to translate the card.
 
 ## License
 

@@ -80,7 +80,7 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-# dist wird eingecheckt (Marketplace-Datei)
+# dist is committed (file installed by the Marketplace)
 .output
 
 # Gatsby files

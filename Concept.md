@@ -1,47 +1,47 @@
-# Konzept: Car Info Card
+# Concept: Car Info Card
 
-## Ziel
-Home-Assistant-Dashboard-Karte für ein E-Auto: allgemeine SUV-Silhouette, in der Mitte eine Batterie mit 5 Segmenten zu je 20 % (rot, orange, gelb, hellgrün, dunkelgrün), darin ein Blitz. Blitz grau ohne Laden, grün beim Laden; Stärke und Animation nach Ladeleistung. Rundherum wichtige Werte (Kilometerstand, Reichweite, Ladeleistung, Restzeit, Ladezustand, Klima-Solltemperatur u. a.), per Karten-Editor wählbar. Veröffentlichung über den Marketplace (seit Home Assistant 2026.11 eingebaut, liest den HACS-Katalog).
+## Goal
+A Home Assistant dashboard card for electric cars: a generic SUV silhouette with a battery in the middle, split into 5 segments of 20 % each (red, orange, yellow, light green, dark green), with a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its strength and animation follow the charging power. Important values (odometer, range, charging power, time to full, charging state, target temperature, …) are shown around the car and can be chosen in the card editor. Distribution through the Marketplace (built into Home Assistant since 2026.11, reads the HACS catalog).
 
-## Vorgaben
-- Sprache: Oberfläche Deutsch; README englisch, zusätzlich README.de.md.
-- Nur verifizierte Fakten in der Doku; Unsicheres als "⚠️ NICHT VERIFIZIERT" markieren.
-- Keine Marken im Repo- oder Kartennamen; keine Nachzeichnung eines erkennbaren Fahrzeugmodells. Eigene, allgemeine SUV-Silhouette als SVG; Option `image` für ein eigenes Bild.
-- Karte generisch: Entitäten werden per Konfiguration zugeordnet, keine festen Entitätsnamen im Code. Beispiele und Testdaten nutzen allgemeine Namen (`sensor.mein_auto_*`, `sensor.my_car_*`).
-- Keine Tokens, Passwörter, Schlüssel oder persönlichen Daten im Repo.
+## Guidelines
+- Code, comments and documentation in English. The card UI is English by default and translated via `src/localize.js` (currently German).
+- Only verified facts in the documentation; mark anything uncertain as "⚠️ NOT VERIFIED".
+- No brand names in the repository or card name; no copy of a recognisable car model. Own generic SUV silhouette as SVG; option `image` for a custom picture.
+- Generic card: entities are assigned in the configuration, no fixed entity IDs in the code. Examples and test data use neutral names (`sensor.my_car_*`).
+- No tokens, passwords, keys or personal data in the repository.
 
-## Typische Entitäten einer Fahrzeug-Integration
-Die Karte erwartet nur Zahlen- bzw. Zustandssensoren, wie sie Fahrzeug-Integrationen üblicherweise anlegen:
+## Typical entities of a vehicle integration
+The card only needs numeric and state sensors as vehicle integrations usually provide them:
 
-| Zweck | Beispiel-Entität | Beispielwert |
+| Purpose | Example entity | Example value |
 |---|---|---|
-| Ladestand | `sensor.mein_auto_ladestand` | 35 % |
-| Ladeleistung | `sensor.mein_auto_ladeleistung` | 0.0 kW |
-| Ladezustand | `sensor.mein_auto_ladezustand` | `connect_cable` |
-| Kilometerstand | `sensor.mein_auto_kilometerstand` | km |
-| Reichweite | `sensor.mein_auto_reichweite` | km |
-| Zeit bis Vollladung | `sensor.mein_auto_zeit_bis_vollladung` | ⚠️ Einheit je Integration |
-| Ladetyp | `sensor.mein_auto_ladetyp` | `ac`, `dc`, `not_charging` |
-| Klima-Solltemperatur | `sensor.mein_auto_klima_solltemperatur` | °C |
-| Kennzeichen | `sensor.mein_auto_kennzeichen` | Text |
+| Battery level | `sensor.my_car_battery_level` | 35 % |
+| Charging power | `sensor.my_car_charging_power` | 0.0 kW |
+| Charging state | `sensor.my_car_charging_state` | `connect_cable` |
+| Odometer | `sensor.my_car_odometer` | km |
+| Range | `sensor.my_car_range` | km |
+| Time to full | `sensor.my_car_time_to_full` | ⚠️ unit differs between integrations |
+| Charging type | `sensor.my_car_charging_type` | `ac`, `dc`, `not_charging` |
+| Target temperature | `sensor.my_car_target_temperature` | °C |
+| Licence plate | `sensor.my_car_licence_plate` | text |
 
-Ladezustände, die mindestens eine verbreitete Integration verwendet: `charging`, `connect_cable`, `ready_for_charging`, `conserving`, `discharging`, `charging_interrupted`. Als "lädt" gilt standardmäßig `charging` (Option `charging_states`). Enum-Sensoren liefern ihre möglichen Werte im Attribut `options`; der Editor bietet sie zur Auswahl an.
+Charging states used by at least one common integration: `charging`, `connect_cable`, `ready_for_charging`, `conserving`, `discharging`, `charging_interrupted`. By default only `charging` counts as charging (option `charging_states`). Enum sensors list their possible values in the `options` attribute; the editor offers them for selection.
 
-## Marketplace-Voraussetzungen
-Geprüft am 11.11.2026 unter https://contributors.home-assistant.io/marketplace/ (repository-structure, hacs-json, validation, guides/dashboard, guides/releases, guides/catalog):
-- Öffentliches GitHub-Repo mit `hacs.json` und `README.md` im Wurzelverzeichnis; Beschreibung, Topics und Issues sind Pflicht für den Katalog. Ein Repo enthält genau eine Karte.
-- `hacs.json`: `name` ist Pflicht; `filename` optional, wenn die Datei wie das Repo heißt. Unbekannte Schlüssel werden ignoriert. Optional `homeassistant` als Mindestversion.
-- Die JavaScript-Datei wird zuerst am neuesten Release gesucht, dann im Wurzelverzeichnis, dann in `dist`. Installiert nach `www/community/<repo>/`, Ressource mit Version in der URL.
-- Version = Tag des neuesten veröffentlichten GitHub-Release (ein Tag allein reicht nicht). Der Release-Text erscheint als Update-Hinweis.
-- Prüf-Action `hacs/action@main` mit `category: plugin`; der Katalog verlangt einen Lauf ohne `ignore`. Die README eines Dashboard-Repos muss Bilder enthalten.
-- README-Teile nur für GitHub stehen zwischen `<!-- ha-marketplace:exclude-start -->` und `<!-- ha-marketplace:exclude-end -->`.
-- Katalog: Pull Request an `hacs/default` (Datei `plugin`, alphabetisch), vom eigenen Konto, Vorlage vollständig mit Link zum Release und zu einem erfolgreichen HACS-Action-Lauf. Die Prüfung dauert laut Doku Monate; bis dahin Installation per My-Link `marketplace_repository`.
+## Marketplace requirements
+Checked on 2026-11-11 at https://contributors.home-assistant.io/marketplace/ (repository-structure, hacs-json, validation, guides/dashboard, guides/releases, guides/catalog):
+- Public GitHub repository with `hacs.json` and `README.md` in the root; description, topics and issues are required for the catalog. One repository holds exactly one card.
+- `hacs.json`: `name` is required; `filename` is optional when the file is named after the repository. Unknown keys are ignored. Optional `homeassistant` sets the minimum version.
+- The JavaScript file is looked up on the latest release first, then in the root, then in `dist`. It is installed to `www/community/<repository>/` and added as a resource with the version in the URL.
+- Version = tag of the latest published GitHub release (a tag alone is not enough). The release notes are shown as the update notes.
+- Validation action `hacs/action@main` with `category: plugin`; the catalog needs a run without `ignore`. The README of a dashboard repository must contain images.
+- README parts meant only for GitHub go between `<!-- ha-marketplace:exclude-start -->` and `<!-- ha-marketplace:exclude-end -->`.
+- Catalog: pull request to `hacs/default` (file `plugin`, alphabetical order), from a personal account, with the template filled in completely, including links to the release and a passing HACS action run. Reviews take months according to the docs; until then users install via the `marketplace_repository` My link.
 
-## Reihenfolge
-1. Prototyp (Lit, eine JS-Datei), Vorschau per Playwright-Screenshot. ✅
-2. Karten-Editor (Werte, Entitäten, Ladestufen, Farben). ✅
-3. Test in einem echten Home Assistant während eines Ladevorgangs.
-4. README, `hacs.json`, Release, Katalog-Eintrag. (README, `hacs.json`, Workflows ✅; Release und Katalog offen)
+## Roadmap
+1. Prototype (Lit, single JS file), preview via Playwright screenshots. ✅
+2. Card editor (values, entities, charging levels, colors). ✅
+3. Test in a real Home Assistant during a charging session.
+4. README, `hacs.json`, release, catalog entry. (README, `hacs.json`, workflows ✅; release and catalog open)
 
-## Stand (Version 0.2.0)
-- Offen: Test im echten Home Assistant beim Laden (Wert und Einheit der Restzeit, Verhalten des Editors), erstes Release, Katalog-Eintrag.
+## Status (version 0.2.0)
+- Open: test in a real Home Assistant while charging (value and unit of the time to full, editor behaviour), first release, catalog entry.

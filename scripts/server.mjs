@@ -1,4 +1,4 @@
-// Kleiner statischer Server für Vorschau und Tests (Wurzel = Repo).
+// Small static server for the preview and tests (root = repository).
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
