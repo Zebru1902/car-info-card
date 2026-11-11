@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>car-info-card Vorschau</title>
+<style>
+  body { margin: 0; padding: 24px; font-family: Roboto, "Noto Sans", Arial, sans-serif;
+    background: var(--primary-background-color); }
+  body.light { --divider-color:#e0e0e0; --primary-color:#03a9f4; --primary-background-color:#fafafa; --card-background-color:#fff;
+    --primary-text-color:#212121; --secondary-text-color:#727272; }
+  body.dark { --divider-color:#333; --primary-color:#03a9f4; --primary-background-color:#111111; --card-background-color:#1c1c1c;
+    --primary-text-color:#e1e1e1; --secondary-text-color:#9b9b9b; }
+  #wrap { width: var(--w, 560px); }
+  #wrap.editor { width: 1044px; display: grid; grid-template-columns: 560px 460px; gap: 24px; align-items: start; }
+  #editor-box { background: var(--card-background-color); border-radius: 12px; padding: 16px;
+    border: 1px solid rgba(127,127,127,.25); color: var(--primary-text-color); }
+  #yaml { font: 12px/1.4 monospace; white-space: pre-wrap; color: var(--secondary-text-color); margin-top: 16px; }
+</style>
+</head>
+<body class="light">
+<div id="wrap"></div>
+<script type="module">
+  import * as mdi from "/node_modules/@mdi/js/mdi.js";
+
+  // Ersatz für die HA-eigenen Elemente, nur für die Vorschau
+  const iconPath = (name) => {
+    if (!name) return "";
+    const key = "mdi" + name.replace("mdi:", "").split("-")
+      .map((p) => p[0].toUpperCase() + p.slice(1)).join("");
+    return mdi[key] || "";
+  };
+  class StubIcon extends HTMLElement {
+    set icon(v) { this._icon = v; this._r(); }
+    set stateObj(v) { this._icon = v?.attributes?.icon; this._r(); }
+    set hass(_) {}
+    _r() {
+      this.style.display = "inline-flex";
+      this.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="${iconPath(this._icon)}"/></svg>`;
+    }
+  }
+  customElements.define("ha-icon", StubIcon);
+  customElements.define("ha-state-icon", class extends StubIcon {});
+  customElements.define("ha-card", class extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({ mode: "open" }).innerHTML = `<style>:host{display:block;
+        background:var(--card-background-color);border-radius:12px;
+        border:1px solid rgba(127,127,127,.25)}</style><slot></slot>`;
+    }
+  });
+
+  await import("/preview/ha-form-stub.js");
+  await import("/dist/car-info-card.js");
+
+  const P = "sensor.mein_auto_";
+  // Vorschau-Übersetzungen der Ladezustände (nicht die echten HA-Texte)
+  const ENUM = {
+    charging: "Lädt", connect_cable: "Kabel anschließen", ready_for_charging: "Bereit zum Laden",
+    conserving: "Erhaltungsladung", discharging: "Entlädt", charging_interrupted: "Laden unterbrochen",
+    not_charging: "Lädt nicht", ac: "AC", dc: "DC",
+  };
+  const nf = (v, d) => Number(v).toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+  const SCENARIOS = {
+    // Beispielwerte, Auto abgesteckt
+    abgesteckt: { kilometerstand: "15840", ladestand: "35", reichweite: "130.0",
+      ladeleistung: "0.0", ladezustand: "connect_cable", zeit_bis_vollladung: "unknown",
+      ladetyp: "not_charging", klima_solltemperatur: "21.0", klima_restlaufzeit: "unknown" },
+    // Ausgedachte Werte für die Lade-Darstellung
+    laden_ac: { kilometerstand: "15840", ladestand: "62", reichweite: "231.0",
+      ladeleistung: "10.8", ladezustand: "charging", zeit_bis_vollladung: "155",
+      ladetyp: "ac", klima_solltemperatur: "21.0", klima_restlaufzeit: "unknown" },
+    laden_dc: { kilometerstand: "15840", ladestand: "71", reichweite: "265.0",
+      ladeleistung: "85.0", ladezustand: "charging", zeit_bis_vollladung: "18",
+      ladetyp: "dc", klima_solltemperatur: "21.0", klima_restlaufzeit: "unknown" },
+    langsam: { kilometerstand: "15840", ladestand: "14", reichweite: "52.0",
+      ladeleistung: "2.3", ladezustand: "charging", zeit_bis_vollladung: "920",
+      ladetyp: "ac", klima_solltemperatur: "21.0", klima_restlaufzeit: "unknown" },
+  };
+  const META = {
+    kilometerstand: ["Kilometerstand", "km", "mdi:counter", 0],
+    ladestand: ["Ladestand", "%", "mdi:battery", 0],
+    reichweite: ["Reichweite", "km", "mdi:map-marker-distance", 0],
+    ladeleistung: ["Ladeleistung", "kW", "mdi:flash", 1],
+    ladezustand: ["Ladezustand", null, "mdi:ev-station"],
+    // ⚠️ Einheit beim echten Laden nicht verifiziert, hier min angenommen
+    zeit_bis_vollladung: ["Zeit bis Vollladung", "min", "mdi:timer-outline", 0],
+    ladetyp: ["Ladetyp", null, "mdi:ev-plug-type2"],
+    klima_solltemperatur: ["Klima-Solltemperatur", "°C", "mdi:thermometer", 1],
+    klima_restlaufzeit: ["Klima-Restlaufzeit", "min", "mdi:fan", 0],
+  };
+
+  function makeHass(values) {
+    const states = {};
+    for (const [k, v] of Object.entries(values)) {
+      const [name, unit, icon] = META[k];
+      states[P + k] = { entity_id: P + k, state: v,
+        attributes: { friendly_name: "Mein Auto " + name, icon,
+          ...(k === "ladezustand" ? { device_class: "enum", options: ["charging", "connect_cable",
+            "ready_for_charging", "conserving", "discharging", "charging_interrupted"] } : {}),
+          ...(unit ? { unit_of_measurement: unit } : {}) } };
+    }
+    states[P + "kennzeichen"] = { entity_id: P + "kennzeichen", state: "AB-CD 123",
+      attributes: { friendly_name: "Mein Auto Kennzeichen" } };
+    return {
+      states,
+      formatEntityState(s) {
+        const key = s.entity_id.replace(P, "");
+        const meta = META[key];
+        if (!meta) return s.state;
+        const [, unit, , digits] = meta;
+        if (!unit) return ENUM[s.state] ?? s.state;
+        return `${nf(s.state, digits)} ${unit}`;
+      },
+    };
+  }
+
+  window.render = ({ scenario, theme, width }) => {
+    document.body.className = theme;
+    document.getElementById("wrap").style.setProperty("--w", width + "px");
+    const card = document.createElement("car-info-card");
+    card.setConfig(baseConfig());
+    card.hass = makeHass(SCENARIOS[scenario]);
+    const wrap = document.getElementById("wrap");
+    wrap.className = "";
+    wrap.replaceChildren(card);
+    return card.updateComplete;
+  };
+
+  // Editor neben der Karte; config-changed wird wie in HA zurückgespielt
+  window.renderEditor = async ({ scenario, theme, config }) => {
+    document.body.className = theme;
+    const wrap = document.getElementById("wrap");
+    wrap.className = "editor";
+    wrap.style.removeProperty("--w");
+    const hass = makeHass(SCENARIOS[scenario]);
+    const card = document.createElement("car-info-card");
+    const editor = document.createElement("car-info-card-editor");
+    const box = document.createElement("div");
+    box.id = "editor-box";
+    const yaml = document.createElement("div");
+    yaml.id = "yaml";
+    box.append(editor, yaml);
+    const apply = (cfg) => {
+      window.lastConfig = cfg;
+      card.setConfig(cfg);
+      editor.setConfig(cfg);
+      yaml.textContent = JSON.stringify(cfg, null, 2);
+    };
+    card.hass = hass;
+    editor.hass = hass;
+    apply(config || baseConfig());
+    editor.addEventListener("config-changed", (ev) => apply(ev.detail.config));
+    const col = document.createElement("div");
+    col.append(card);
+    wrap.replaceChildren(col, box);
+    await editor.updateComplete;
+    await card.updateComplete;
+  };
+
+  function baseConfig() {
+    return {
+      name: "Mein Auto",
+      entities: {
+        battery: P + "ladestand",
+        charging_power: P + "ladeleistung",
+        charging_state: P + "ladezustand",
+        plate: P + "kennzeichen",
+      },
+      values: [
+        { entity: P + "kilometerstand", name: "Kilometerstand" },
+        { entity: P + "reichweite", name: "Reichweite" },
+        { entity: P + "klima_solltemperatur", name: "Klima-Soll" },
+        { entity: P + "ladeleistung", name: "Ladeleistung" },
+        { entity: P + "zeit_bis_vollladung", name: "Restzeit" },
+        { entity: P + "ladetyp", name: "Ladetyp" },
+      ],
+    };
+  }
+  window.ready = true;
+</script>
+</body>
+</html>
