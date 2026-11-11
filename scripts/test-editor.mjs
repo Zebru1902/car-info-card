@@ -37,7 +37,7 @@ try {
 
   // 2. Select the required entity
   await step("select battery level", async () => {
-    await field(1, "battery").selectOption(P + "battery_level");
+    await field(2, "battery").selectOption(P + "battery_level");
     assert.equal((await cfg()).entities.battery, P + "battery_level");
     assert.equal(await page.locator("car-info-card .soc").textContent(), "35 %");
   });
@@ -80,19 +80,19 @@ try {
 
   // 5. Charging: states and power levels
   await step("charging states", async () => {
-    await field(1, "charging_state").selectOption(P + "charging_state");
+    await field(2, "charging_state").selectOption(P + "charging_state");
     assert.equal("charging_states" in (await cfg()), false);
-    await forms.nth(2).locator("input[value=conserving]").check();
+    await forms.nth(3).locator("input[value=conserving]").check();
     assert.deepEqual((await cfg()).charging_states, ["charging", "conserving"]);
-    await forms.nth(2).locator("input[value=conserving]").uncheck();
+    await forms.nth(3).locator("input[value=conserving]").uncheck();
     assert.equal("charging_states" in (await cfg()), false);
   });
   await step("power levels", async () => {
-    await field(2, "power_2").fill("22");
-    await field(2, "power_2").dispatchEvent("change");
+    await field(3, "power_2").fill("22");
+    await field(3, "power_2").dispatchEvent("change");
     assert.deepEqual((await cfg()).power_levels, [3.7, 22, 50]);
-    await field(2, "power_2").fill("11");
-    await field(2, "power_2").dispatchEvent("change");
+    await field(3, "power_2").fill("11");
+    await field(3, "power_2").dispatchEvent("change");
     assert.equal("power_levels" in (await cfg()), false);
   });
 
@@ -117,7 +117,36 @@ try {
     assert.equal("show_name" in (await cfg()), false);
   });
 
-  // 8. German UI when Home Assistant is set to German
+  // 8. Device filter: only entities of the selected device are offered
+  await step("device filter", async () => {
+    const options = (form, name) =>
+      field(form, name).locator("option").evaluateAll((os) => os.map((o) => o.value).filter(Boolean));
+    const addOptions = () => editor.locator(".add ha-form label[data-name=entity] select option")
+      .evaluateAll((os) => os.map((o) => o.value).filter(Boolean));
+    // forms: 0 general, 1 device, 2 entities, 3 charging
+    await field(1, "device").selectOption("");
+    assert.ok((await options(2, "charging_power")).includes("sensor.wallbox_power"));
+    assert.ok((await addOptions()).includes("sensor.outdoor_temperature"));
+    assert.equal("device" in (await cfg()), false);
+
+    await field(1, "device").selectOption("dev_car");
+    assert.equal((await cfg()).device, "dev_car");
+    const power = await options(2, "charging_power");
+    assert.ok(power.includes(P + "charging_power"));
+    assert.ok(!power.includes("sensor.wallbox_power"));
+    const add = await addOptions();
+    assert.ok(add.includes(P + "odometer"));
+    assert.ok(!add.includes("sensor.outdoor_temperature"));
+
+    await field(1, "device").selectOption("dev_wallbox");
+    const battery = await options(2, "battery");
+    // the already configured battery entity stays selectable
+    assert.ok(battery.includes(P + "battery_level"));
+    assert.ok(battery.includes("sensor.wallbox_power"));
+    assert.ok(!battery.includes(P + "range"));
+  });
+
+  // 9. German UI when Home Assistant is set to German
   await step("German translation", async () => {
     await page.evaluate(() =>
       window.renderEditor({ scenario: "unplugged", theme: "light", language: "de" })

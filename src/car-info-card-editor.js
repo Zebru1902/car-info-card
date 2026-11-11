@@ -26,6 +26,11 @@ const GENERAL_SCHEMA = [
   { name: "image", selector: { text: {} } },
 ];
 
+// ⚠️ NOT VERIFIED in HA 2026.11: device selector with an entity filter
+const DEVICE_SCHEMA = [
+  { name: "device", selector: { device: { entity: [{ domain: "sensor" }] } } },
+];
+
 const ENTITY_SCHEMA = [
   { name: "battery", required: true, selector: { entity: { filter: { domain: "sensor" } } } },
   { name: "charging_power", selector: { entity: { filter: { domain: "sensor" } } } },
@@ -100,7 +105,7 @@ class CarInfoCardEditor extends LitElement {
   _commit(config) {
     const out = { ...config };
     // Do not write empty or default values to the config
-    for (const key of ["name", "image"]) if (isEmpty(out[key])) delete out[key];
+    for (const key of ["name", "image", "device"]) if (isEmpty(out[key])) delete out[key];
     if (out.show_name === true) delete out.show_name;
     const entities = {};
     for (const [k, v] of Object.entries(out.entities || {})) if (!isEmpty(v)) entities[k] = v;
@@ -131,6 +136,11 @@ class CarInfoCardEditor extends LitElement {
     ev.stopPropagation();
     const v = ev.detail.value;
     this._commit({ ...this._config, name: v.name, show_name: v.show_name, image: v.image });
+  }
+
+  _deviceChanged(ev) {
+    ev.stopPropagation();
+    this._commit({ ...this._config, device: ev.detail.value.device });
   }
 
   _entitiesChanged(ev) {
@@ -204,6 +214,29 @@ class CarInfoCardEditor extends LitElement {
 
   _helper = (schema) => this._t(`helper.${schema.name}`);
 
+  // Entities of the selected device; undefined means "no filter"
+  _deviceEntities() {
+    const device = this._config.device;
+    if (!device || !this.hass || !this.hass.entities) return undefined;
+    const ids = Object.values(this.hass.entities)
+      .filter((e) => e.device_id === device)
+      .map((e) => e.entity_id);
+    return ids.length ? ids : undefined;
+  }
+
+  // Restricts the entity pickers of a schema to the selected device.
+  // Entities that are already configured stay selectable.
+  _filterSchema(schema, current = []) {
+    const ids = this._deviceEntities();
+    if (!ids) return schema;
+    const include = [...new Set([...ids, ...current.filter(Boolean)])];
+    return schema.map((s) =>
+      s.selector && s.selector.entity
+        ? { ...s, selector: { entity: { ...s.selector.entity, include_entities: include } } }
+        : s
+    );
+  }
+
   _chargingSchema() {
     const stateObj =
       this.hass && this._config.entities.charging_state
@@ -250,6 +283,7 @@ class CarInfoCardEditor extends LitElement {
     const levels = cfg.power_levels || DEFAULT_POWER_LEVELS;
     const colors = cfg.colors || DEFAULT_COLORS;
     const valueSchema = VALUE_SCHEMA.map((s) => (s.name === "name" ? { ...s, _value: true } : s));
+    const entitySchema = this._filterSchema(ENTITY_SCHEMA, Object.values(cfg.entities));
     const half = Math.ceil(cfg.values.length / 2);
 
     return html`
@@ -264,7 +298,8 @@ class CarInfoCardEditor extends LitElement {
 
       <div class="section">
         <h3>${this._t("editor.entities")}</h3>
-        ${this._form(ENTITY_SCHEMA, cfg.entities, this._entitiesChanged)}
+        ${this._form(DEVICE_SCHEMA, { device: cfg.device || "" }, this._deviceChanged)}
+        ${this._form(entitySchema, cfg.entities, this._entitiesChanged)}
       </div>
 
       <div class="section">
@@ -297,13 +332,15 @@ class CarInfoCardEditor extends LitElement {
                 )}
                 ${this._iconButton(PATH_DELETE, this._t("editor.remove"), false, () => this._removeValue(i))}
               </div>
-              ${this._form(valueSchema, v, (ev) => this._valueChanged(i, ev))}
+              ${this._form(this._filterSchema(valueSchema, [v.entity]), v, (ev) =>
+                this._valueChanged(i, ev)
+              )}
             </div>
           `
         )}
         <div class="add">
           ${this._form(
-            [{ name: "entity", selector: { entity: {} } }],
+            this._filterSchema([{ name: "entity", selector: { entity: {} } }]),
             {},
             this._addValue
           )}

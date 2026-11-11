@@ -15,7 +15,7 @@ A Home Assistant dashboard card for electric cars: a generic SUV silhouette with
 - Works with any integration: all entities are assigned in the configuration
 - Values on the left and right of the car; two columns below the car on narrow cards
 - Optional own image instead of the built-in silhouette
-- Visual card editor
+- Visual card editor; pick your car's device to see only its entities
 - Light and dark themes, respects "reduced motion"
 - User interface in English and German (follows the Home Assistant language)
 
@@ -42,6 +42,7 @@ Add the card via "Add card" → "Car Info Card" and use the editor, or in YAML:
 ```yaml
 type: custom:car-info-card
 name: My car
+device: 0123456789abcdef0123456789abcdef  # optional, set by the editor
 entities:
   battery: sensor.my_car_battery_level          # required
   charging_power: sensor.my_car_charging_power  # optional
@@ -62,6 +63,7 @@ values:
 |---|---|---|
 | `name` | – | Title |
 | `show_name` | `true` | Show the header (name, licence plate) |
+| `device` | – | Device ID; only used by the editor to show just this device's entities in the pickers |
 | `entities.battery` | – | State of charge in % (required) |
 | `entities.charging_power` | – | Charging power; W, kW and MW are converted |
 | `entities.charging_state` | – | Charging state; without it, power > 0 counts as charging |

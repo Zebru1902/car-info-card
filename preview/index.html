@@ -103,14 +103,33 @@
     }
     states[P + "licence_plate"] = { entity_id: P + "licence_plate", state: "AB-CD 123",
       attributes: { friendly_name: "My car Licence plate" } };
+    // Other devices, so the device filter in the editor has something to hide
+    states["sensor.wallbox_power"] = { entity_id: "sensor.wallbox_power", state: "0.0",
+      attributes: { friendly_name: "Wallbox Power", unit_of_measurement: "kW", icon: "mdi:ev-station" } };
+    states["sensor.outdoor_temperature"] = { entity_id: "sensor.outdoor_temperature", state: "8.5",
+      attributes: { friendly_name: "Outdoor temperature", unit_of_measurement: "°C", icon: "mdi:thermometer" } };
+    const devices = {
+      dev_car: { id: "dev_car", name: "My car" },
+      dev_wallbox: { id: "dev_wallbox", name: "Wallbox" },
+    };
+    const entities = {};
+    for (const id of Object.keys(states)) {
+      const device_id = id.startsWith(P) ? "dev_car" : id.startsWith("sensor.wallbox") ? "dev_wallbox" : null;
+      entities[id] = { entity_id: id, device_id };
+    }
     return {
       states,
+      devices,
+      entities,
       language,
       locale: { language },
       formatEntityState(s) {
         const key = s.entity_id.replace(P, "");
         const meta = META[key];
-        if (!meta) return s.state;
+        if (!meta) {
+          const unit = s.attributes.unit_of_measurement;
+          return unit ? `${s.state} ${unit}` : s.state;
+        }
         const [, unit, , digits] = meta;
         if (!unit) return ENUM[s.state] ?? s.state;
         return `${nf(s.state, digits)} ${unit}`;
@@ -121,6 +140,7 @@
   function baseConfig() {
     return {
       name: "My car",
+      device: "dev_car",
       entities: {
         battery: P + "battery_level",
         charging_power: P + "charging_power",
