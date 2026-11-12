@@ -350,7 +350,7 @@ class CarInfoCard extends LitElement {
       }
       .layout {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr) minmax(0, 1fr);
         gap: 12px;
         align-items: center;
       }
@@ -388,19 +388,25 @@ class CarInfoCard extends LitElement {
         flex-direction: column;
         min-width: 0;
       }
+      /* Long labels and values wrap onto a second line, then get cut off */
+      .label,
+      .state {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+        overflow-wrap: break-word;
+      }
       .label {
         font-size: 0.75rem;
+        line-height: 1.25;
         color: var(--cic-secondary);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
       }
       .state {
         font-size: 1rem;
+        line-height: 1.25;
         font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
       }
       .center {
         display: flex;
