@@ -30,6 +30,14 @@ for (const s of shots) {
   await page.locator("#wrap").screenshot({ path: out });
   console.log("saved:", out);
 }
+for (const theme of ["light", "dark"]) {
+  await page.evaluate((t) => window.renderGallery({ theme: t,
+    names: ["suv", "sedan", "hatchback", "van", "race", "tractor", "vintage"] }), theme);
+  await page.waitForTimeout(300);
+  const file = join(root, "docs/screenshots", `vehicles-${theme}.png`);
+  await page.locator("#wrap").screenshot({ path: file });
+  console.log("saved:", file);
+}
 await page.evaluate(() => window.renderEditor({ scenario: "charging_ac", theme: "light" }));
 await page.waitForTimeout(300);
 const out = join(root, "docs/screenshots", "editor-light.png");

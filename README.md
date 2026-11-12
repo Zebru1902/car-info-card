@@ -15,7 +15,7 @@ A Home Assistant dashboard card for electric cars: a generic SUV silhouette with
 - Charging bolt in 4 power levels (default limits 3.7 / 11 / 50 kW, configurable)
 - Works with any integration: all entities are assigned in the configuration
 - Values on the left and right of the car; two columns below the car on narrow cards
-- Optional own image instead of the built-in silhouette
+- 7 built-in vehicles (SUV, sedan, hatchback, van, and for fun a formula race car, a tractor and a vintage car) or your own image
 - Visual card editor; pick your car's device to see only its entities
 - Light and dark themes, respects "reduced motion"
 - User interface in English and German (follows the Home Assistant language)
@@ -35,6 +35,12 @@ The link opens this repository in the Marketplace of your Home Assistant (2026.1
 2. Settings → Dashboards → ⋮ → Resources → add `/local/community/car-info-card/car-info-card.js` as **JavaScript module**.
 3. Reload the browser (clear the cache).
 <!-- ha-marketplace:exclude-end -->
+
+## Built-in vehicles
+
+![Built-in vehicles](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/vehicles-light.png)
+
+All drawings are generic and made for this card; none of them copies a real car model.
 
 ## Configuration
 
@@ -73,7 +79,8 @@ values:
 | `charging_states` | `[charging]` | States of `charging_state` that count as charging |
 | `power_levels` | `[3.7, 11, 50]` | kW limits of bolt levels 1–3; above that level 4 |
 | `colors` | red, orange, yellow, yellow-green, light green, dark green | 5 segment colors (0–20 % … 80–100 %) plus an optional 6th color used for all segments when fully charged |
-| `image` | – | Own image instead of the silhouette, e.g. `/local/car.png` |
+| `silhouette` | `suv` | Built-in vehicle: `suv`, `sedan`, `hatchback`, `van`, `race`, `tractor`, `vintage` |
+| `image` | – | Own image instead of the built-in vehicle, e.g. `/local/car.png` |
 | `values` | `[]` | List of `entity` (+ optional `name`, `icon`); first half on the left, second half on the right |
 
 ![Card editor (preview)](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/editor-light.png)

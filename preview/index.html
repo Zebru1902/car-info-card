@@ -12,6 +12,7 @@
     --card-background-color:#1c1c1c; --primary-text-color:#e1e1e1; --secondary-text-color:#9b9b9b; }
   #wrap { width: var(--w, 560px); }
   #wrap.editor { width: 1044px; display: grid; grid-template-columns: 560px 460px; gap: 24px; align-items: start; }
+  #wrap.gallery { width: 1044px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
   #editor-box { background: var(--card-background-color); border-radius: 12px; padding: 16px;
     border: 1px solid rgba(127,127,127,.25); color: var(--primary-text-color); }
   #yaml { font: 12px/1.4 monospace; white-space: pre-wrap; color: var(--secondary-text-color); margin-top: 16px; }
@@ -205,6 +206,22 @@
     wrap.replaceChildren(col, box);
     await editor.updateComplete;
     await card.updateComplete;
+  };
+
+  // All built-in vehicle drawings side by side
+  window.renderGallery = async ({ theme, scenario = "charging_ac", names }) => {
+    document.body.className = theme;
+    const wrap = document.getElementById("wrap");
+    wrap.className = "gallery";
+    wrap.style.removeProperty("--w");
+    const cards = names.map((name) => {
+      const card = document.createElement("car-info-card");
+      card.setConfig({ ...baseConfig(), name, values: [], show_plate: false, silhouette: name });
+      card.hass = makeHass(SCENARIOS[scenario]);
+      return card;
+    });
+    wrap.replaceChildren(...cards);
+    await Promise.all(cards.map((c) => c.updateComplete));
   };
 
   window.ready = true;

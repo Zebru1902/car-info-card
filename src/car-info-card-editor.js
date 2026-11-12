@@ -7,6 +7,7 @@ import {
   fireEvent,
 } from "./const.js";
 import { localize } from "./localize.js";
+import { SILHOUETTE_NAMES, DEFAULT_SILHOUETTE } from "./silhouettes.js";
 
 const COLOR_NAMES = ["0–20 %", "20–40 %", "40–60 %", "60–80 %", "80–100 %"];
 
@@ -25,6 +26,7 @@ const GENERAL_SCHEMA = [
   { name: "name", selector: { text: {} } },
   { name: "show_name", selector: { boolean: {} } },
   { name: "show_plate", selector: { boolean: {} } },
+  { name: "silhouette", selector: { select: { mode: "dropdown", options: [] } } },
   { name: "image", selector: { text: {} } },
 ];
 
@@ -108,6 +110,7 @@ class CarInfoCardEditor extends LitElement {
     const out = { ...config };
     // Do not write empty or default values to the config
     for (const key of ["name", "image", "device"]) if (isEmpty(out[key])) delete out[key];
+    if (isEmpty(out.silhouette) || out.silhouette === DEFAULT_SILHOUETTE) delete out.silhouette;
     if (out.show_name === true) delete out.show_name;
     if (out.show_plate === true) delete out.show_plate;
     const entities = {};
@@ -141,6 +144,7 @@ class CarInfoCardEditor extends LitElement {
     this._commit({ ...this._config, name: v.name,
       show_name: v.show_name,
       show_plate: v.show_plate,
+      silhouette: v.silhouette,
       image: v.image,
     });
   }
@@ -244,6 +248,13 @@ class CarInfoCardEditor extends LitElement {
     );
   }
 
+  _generalSchema() {
+    const options = SILHOUETTE_NAMES.map((n) => ({ value: n, label: this._t(`silhouette.${n}`) || n }));
+    return GENERAL_SCHEMA.map((s) =>
+      s.name === "silhouette" ? { ...s, selector: { select: { mode: "dropdown", options } } } : s
+    );
+  }
+
   _chargingSchema() {
     const stateObj =
       this.hass && this._config.entities.charging_state
@@ -297,11 +308,12 @@ class CarInfoCardEditor extends LitElement {
       <div class="section">
         <h3>${this._t("editor.general")}</h3>
         ${this._form(
-          GENERAL_SCHEMA,
+          this._generalSchema(),
           {
             name: cfg.name || "",
             show_name: cfg.show_name !== false,
             show_plate: cfg.show_plate !== false,
+            silhouette: cfg.silhouette || DEFAULT_SILHOUETTE,
             image: cfg.image || "",
           },
           this._generalChanged

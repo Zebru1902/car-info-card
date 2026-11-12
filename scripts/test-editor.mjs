@@ -160,6 +160,27 @@ try {
     assert.deepEqual(await header(), { name: "My car", plate: "AB-CD 123" });
   });
 
+  // 7b. Built-in vehicle drawings
+  await step("vehicle", async () => {
+    const shown = () => page.locator("car-info-card svg.car-svg").getAttribute("data-silhouette");
+    assert.equal(await shown(), "suv");
+    const labels = await field(0, "silhouette").locator("option")
+      .evaluateAll((os) => os.map((o) => o.textContent));
+    assert.deepEqual(labels, ["SUV", "Sedan", "Hatchback", "Van", "Formula race car", "Tractor", "Vintage car"]);
+    await field(0, "silhouette").selectOption("tractor");
+    assert.equal((await cfg()).silhouette, "tractor");
+    assert.equal(await shown(), "tractor");
+    await field(0, "silhouette").selectOption("suv");
+    assert.equal("silhouette" in (await cfg()), false);
+    // a custom image replaces the drawing
+    await field(0, "image").fill("/local/car.png");
+    await field(0, "image").dispatchEvent("change");
+    assert.equal(await page.locator("car-info-card .car img").getAttribute("src"), "/local/car.png");
+    await field(0, "image").fill("");
+    await field(0, "image").dispatchEvent("change");
+    assert.equal("image" in (await cfg()), false);
+  });
+
   // 8. Device filter: only entities of the selected device are offered
   await step("device filter", async () => {
     const options = (form, name) =>

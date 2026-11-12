@@ -6,7 +6,7 @@ A Home Assistant dashboard card for electric cars: a generic SUV silhouette with
 ## Guidelines
 - Code, comments and documentation in English. The card UI is English by default and translated via `src/localize.js` (currently German).
 - Only verified facts in the documentation; mark anything uncertain as "⚠️ NOT VERIFIED".
-- No brand names in the repository or card name; no copy of a recognisable car model. Own generic SUV silhouette as SVG; option `image` for a custom picture.
+- No brand names in the repository or card name; no copy of a recognisable car model. Own generic vehicle drawings as SVG (`silhouette`: suv, sedan, hatchback, van, race, tractor, vintage; in `src/silhouettes.js`); option `image` for a custom picture.
 - Generic card: entities are assigned in the configuration, no fixed entity IDs in the code. Examples and test data use neutral names (`sensor.my_car_*`).
 - No tokens, passwords, keys or personal data in the repository.
 

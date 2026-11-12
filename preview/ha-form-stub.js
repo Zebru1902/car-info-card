@@ -58,6 +58,11 @@ class StubHaForm extends HTMLElement {
       input.step = sel.number.step ?? 1;
       input.value = val ?? "";
       input.onchange = () => this._emit(s.name, input.value === "" ? undefined : Number(input.value));
+    } else if (sel.select && !sel.select.multiple) {
+      input = document.createElement("select");
+      for (const o of sel.select.options) input.append(new Option(o.label, o.value));
+      input.value = val ?? "";
+      input.onchange = () => this._emit(s.name, input.value);
     } else if (sel.select?.multiple) {
       input = document.createElement("div");
       input.className = "multi";

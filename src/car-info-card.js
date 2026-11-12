@@ -7,6 +7,7 @@ import {
   fireEvent,
 } from "./const.js";
 import { localize, browserLanguageString } from "./localize.js";
+import { SILHOUETTES, SILHOUETTE_NAMES, DEFAULT_SILHOUETTE } from "./silhouettes.js";
 import "./car-info-card-editor.js";
 
 const UNAVAILABLE = ["unknown", "unavailable", "none", ""];
@@ -46,6 +47,9 @@ class CarInfoCard extends LitElement {
     }
     if (config.entities !== undefined && typeof config.entities !== "object") {
       throw new Error("entities must be an object.");
+    }
+    if (config.silhouette && !SILHOUETTES[config.silhouette]) {
+      throw new Error(`silhouette must be one of: ${SILHOUETTE_NAMES.join(", ")}.`);
     }
     if (config.values && !Array.isArray(config.values)) {
       throw new Error("values must be a list.");
@@ -173,6 +177,7 @@ class CarInfoCard extends LitElement {
                 : this._renderCar()}
               <div
                 class="battery level-${level}"
+                style=${this._batteryStyle()}
                 @click=${() => this._moreInfo(cfg.entities.battery)}
               >
                 ${this._renderBattery(soc, level)}
@@ -185,6 +190,12 @@ class CarInfoCard extends LitElement {
         </div>
       </ha-card>
     `;
+  }
+
+  // Position of the battery: per built-in drawing, default position for own images
+  _batteryStyle() {
+    const pos = this._config.image ? SILHOUETTES[DEFAULT_SILHOUETTE].battery : this._silhouette().battery;
+    return `left:${pos.left}%;top:${pos.top}%;width:${pos.width}%`;
   }
 
   _renderStatus(level) {
@@ -280,30 +291,16 @@ class CarInfoCard extends LitElement {
     `;
   }
 
-  // Own generic SUV silhouette (side view, front on the right)
+  _silhouette() {
+    return SILHOUETTES[this._config.silhouette] || SILHOUETTES[DEFAULT_SILHOUETTE];
+  }
+
+  // Built-in vehicle drawing (see silhouettes.js)
   _renderCar() {
+    const name = SILHOUETTES[this._config.silhouette] ? this._config.silhouette : DEFAULT_SILHOUETTE;
     return html`
-      <svg class="car-svg" viewBox="0 0 400 150" aria-hidden="true">
-        <ellipse class="shadow" cx="200" cy="142" rx="180" ry="5"></ellipse>
-        <path
-          class="body"
-          d="M28 112 V88 Q28 72 44 68 L60 64 L70 36 Q74 26 86 26 H238 Q252 26 262 34
-             L300 62 L352 70 Q372 74 374 92 V112 Q374 120 366 120 H338
-             A33 33 0 0 0 272 120 H128 A33 33 0 0 0 62 120 H36 Q28 120 28 112 Z"
-        ></path>
-        <path
-          class="window"
-          d="M80 34 H164 V62 H70 Z M172 34 H236 Q246 34 254 40 L284 62 H172 Z"
-        ></path>
-        <path class="line" d="M168 64 V112 M262 66 Q266 90 262 112"></path>
-        <path class="line" d="M64 84 H370"></path>
-        <rect class="light front" x="356" y="78" width="16" height="7" rx="3"></rect>
-        <rect class="light rear" x="29" y="76" width="9" height="10" rx="3"></rect>
-        <path class="mirror" d="M286 56 l10 -2 l2 8 l-9 1 Z"></path>
-        <circle class="tyre" cx="305" cy="120" r="26"></circle>
-        <circle class="rim" cx="305" cy="120" r="14"></circle>
-        <circle class="tyre" cx="95" cy="120" r="26"></circle>
-        <circle class="rim" cx="95" cy="120" r="14"></circle>
+      <svg class="car-svg" viewBox="0 0 400 150" aria-hidden="true" data-silhouette=${name}>
+        ${SILHOUETTES[name].draw()}
       </svg>
     `;
   }
@@ -462,6 +459,26 @@ class CarInfoCard extends LitElement {
         fill: var(--cic-bg);
         stroke: var(--cic-secondary);
         stroke-width: 3;
+      }
+      .car-svg .spokes {
+        fill: none;
+        stroke: var(--cic-secondary);
+        stroke-width: 2;
+      }
+      .car-svg .hub {
+        fill: var(--cic-secondary);
+      }
+      .car-svg .strut {
+        fill: none;
+        stroke: var(--cic-secondary);
+        stroke-width: 4;
+        stroke-linecap: round;
+      }
+      .car-svg .helmet {
+        fill: var(--cic-secondary);
+        fill-opacity: 0.55;
+        stroke: var(--cic-secondary);
+        stroke-width: 2;
       }
       .car-svg .shadow {
         fill: var(--cic-secondary);
