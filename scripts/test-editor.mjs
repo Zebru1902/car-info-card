@@ -104,9 +104,32 @@ try {
       el.dispatchEvent(new Event("change"));
     });
     assert.equal((await cfg()).colors[0], "#123456");
-    assert.equal(await page.locator("car-info-card rect.track").first().getAttribute("fill"), "#123456");
+    assert.equal(await page.locator("car-info-card rect.seg").first().getAttribute("fill"), "#123456");
     await editor.locator("button.text-button").click();
     assert.equal("colors" in (await cfg()), false);
+  });
+
+  // 6b. Battery colors: dark green only when fully charged
+  await step("battery colors", async () => {
+    const fills = () =>
+      page.locator("car-info-card rect.seg").evaluateAll((rs) => rs.map((r) => r.getAttribute("fill")));
+    for (const scenario of ["charging_dc", "nearly_full"]) {
+      await page.evaluate((sc) => window.render({ scenario: sc, theme: "dark", width: 560 }), scenario);
+      const f = await fills();
+      assert.ok(!f.includes("#2e7d32"), `${scenario}: no dark green below 100 %`);
+    }
+    // 85 %: last segment partly filled in light green
+    assert.equal((await fills())[4], "#7cb342");
+    await page.evaluate(() => window.render({ scenario: "full", theme: "light", width: 560 }));
+    assert.deepEqual(await fills(), Array(5).fill("#2e7d32"));
+    // older configs with 5 colors keep working and use the default full color
+    await page.evaluate(() => window.render({ scenario: "full", theme: "light", width: 560,
+      config: { colors: ["#111111", "#222222", "#333333", "#444444", "#555555"] } }));
+    assert.deepEqual(await fills(), Array(5).fill("#2e7d32"));
+    await page.evaluate(() => window.render({ scenario: "charging_ac", theme: "light", width: 560,
+      config: { colors: ["#111111", "#222222", "#333333", "#444444", "#555555", "#666666"] } }));
+    assert.deepEqual(await fills(), ["#111111", "#222222", "#333333", "#444444"]);
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light" }));
   });
 
   // 7. Hide the header

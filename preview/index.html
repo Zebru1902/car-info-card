@@ -72,6 +72,12 @@
     charging_dc: { odometer: "15840", battery_level: "71", range: "265.0",
       charging_power: "85.0", charging_state: "charging", time_to_full: "18",
       charging_type: "dc", target_temperature: "21.0", climate_time_left: "unknown" },
+    nearly_full: { odometer: "15840", battery_level: "85", range: "312.0",
+      charging_power: "7.2", charging_state: "charging", time_to_full: "25",
+      charging_type: "ac", target_temperature: "21.0", climate_time_left: "unknown" },
+    full: { odometer: "15840", battery_level: "100", range: "368.0",
+      charging_power: "0.0", charging_state: "conserving", time_to_full: "0",
+      charging_type: "not_charging", target_temperature: "21.0", climate_time_left: "unknown" },
     slow: { odometer: "15840", battery_level: "14", range: "52.0",
       charging_power: "2.3", charging_state: "charging", time_to_full: "920",
       charging_type: "ac", target_temperature: "21.0", climate_time_left: "unknown" },
@@ -158,13 +164,13 @@
     };
   }
 
-  window.render = ({ scenario, theme, width }) => {
+  window.render = ({ scenario, theme, width, config }) => {
     document.body.className = theme;
     const wrap = document.getElementById("wrap");
     wrap.className = "";
     wrap.style.setProperty("--w", width + "px");
     const card = document.createElement("car-info-card");
-    card.setConfig(baseConfig());
+    card.setConfig({ ...baseConfig(), ...(config || {}) });
     card.hass = makeHass(SCENARIOS[scenario]);
     wrap.replaceChildren(card);
     return card.updateComplete;

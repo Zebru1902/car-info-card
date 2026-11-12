@@ -1,7 +1,7 @@
 import { LitElement, html, svg, css, nothing } from "lit";
 import {
   VERSION,
-  DEFAULT_COLORS,
+  resolveColors,
   DEFAULT_CHARGING_STATES,
   DEFAULT_POWER_LEVELS,
   fireEvent,
@@ -50,8 +50,11 @@ class CarInfoCard extends LitElement {
     if (config.values && !Array.isArray(config.values)) {
       throw new Error("values must be a list.");
     }
-    if (config.colors && (!Array.isArray(config.colors) || config.colors.length !== 5)) {
-      throw new Error("colors must contain exactly 5 colors.");
+    if (
+      config.colors &&
+      (!Array.isArray(config.colors) || ![5, 6].includes(config.colors.length))
+    ) {
+      throw new Error("colors must contain 5 segment colors and optionally a 6th color for fully charged.");
     }
     this._config = {
       show_name: true,
@@ -227,19 +230,21 @@ class CarInfoCard extends LitElement {
   }
 
   _renderBattery(soc, level) {
-    const colors = this._config.colors || DEFAULT_COLORS;
+    const colors = resolveColors(this._config.colors);
+    const full = soc !== undefined && Math.round(soc) >= 100;
     const segW = (BAT.w - BAT.gap * (BAT.segments - 1)) / BAT.segments;
     const step = 100 / BAT.segments;
     const current =
       soc === undefined ? -1 : Math.min(BAT.segments - 1, Math.floor(soc / step));
 
-    const segments = colors.map((color, i) => {
+    const segments = colors.slice(0, BAT.segments).map((segColor, i) => {
+      // When fully charged, all segments take the "full" color
+      const color = full ? colors[BAT.segments] : segColor;
       const x = BAT.x + i * (segW + BAT.gap);
       const fill = soc === undefined ? 0 : Math.min(1, Math.max(0, (soc - i * step) / step));
       const active = level > 0 && i === current;
       return svg`
-        <rect class="track" x=${x} y=${BAT.y} width=${segW} height=${BAT.h} rx="4"
-          fill=${color}></rect>
+        <rect class="track" x=${x} y=${BAT.y} width=${segW} height=${BAT.h} rx="4"></rect>
         ${fill > 0
           ? svg`<rect class="seg ${active ? "active" : ""}" x=${x} y=${BAT.y}
               width=${segW * fill} height=${BAT.h} rx="4" fill=${color}></rect>`
@@ -481,8 +486,10 @@ class CarInfoCard extends LitElement {
       .cap {
         fill: var(--cic-text);
       }
+      /* Empty part of the battery: neutral, so no segment color shows through */
       .track {
-        fill-opacity: 0.15;
+        fill: var(--cic-track, #9e9e9e);
+        fill-opacity: 0.18;
       }
       .bolt path {
         fill: var(--cic-bolt-off);

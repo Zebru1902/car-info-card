@@ -1,7 +1,7 @@
 # Concept: Car Info Card
 
 ## Goal
-A Home Assistant dashboard card for electric cars: a generic SUV silhouette with a battery in the middle, split into 5 segments of 20 % each (red, orange, yellow, light green, dark green), with a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its strength and animation follow the charging power. Important values (odometer, range, charging power, time to full, charging state, target temperature, …) are shown around the car and can be chosen in the card editor. Distribution through the Marketplace (built into Home Assistant since 2026.11, reads the HACS catalog).
+A Home Assistant dashboard card for electric cars: a generic SUV silhouette with a battery in the middle, split into 5 segments of 20 % each (red, orange, yellow, yellow-green, light green; all segments dark green when fully charged), with a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its strength and animation follow the charging power. Important values (odometer, range, charging power, time to full, charging state, target temperature, …) are shown around the car and can be chosen in the card editor. Distribution through the Marketplace (built into Home Assistant since 2026.11, reads the HACS catalog).
 
 ## Guidelines
 - Code, comments and documentation in English. The card UI is English by default and translated via `src/localize.js` (currently German).

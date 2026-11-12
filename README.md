@@ -1,6 +1,6 @@
 # Car Info Card
 
-A Home Assistant dashboard card for electric cars: a generic SUV silhouette with a battery in the middle, split into 5 segments of 20 % each (red, orange, yellow, light green, dark green), and a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its pulse, glow and size follow the charging power. Any values you like (odometer, range, charging power, time to full, target temperature, …) are shown around the car.
+A Home Assistant dashboard card for electric cars: a generic SUV silhouette with a battery in the middle, split into 5 segments of 20 % each (red, orange, yellow, yellow-green, light green; all dark green when full), and a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its pulse, glow and size follow the charging power. Any values you like (odometer, range, charging power, time to full, target temperature, …) are shown around the car.
 
 > Status: **0.2.0**, early version. Not yet tested in a real Home Assistant during charging.
 
@@ -11,6 +11,7 @@ A Home Assistant dashboard card for electric cars: a generic SUV silhouette with
 ## Features
 
 - Battery with 5 colour segments; the partly filled segment shows the exact level and blinks while charging
+- All segments turn dark green only when the battery is full, so 85 % never looks full
 - Charging bolt in 4 power levels (default limits 3.7 / 11 / 50 kW, configurable)
 - Works with any integration: all entities are assigned in the configuration
 - Values on the left and right of the car; two columns below the car on narrow cards
@@ -70,7 +71,7 @@ values:
 | `entities.plate` | – | Licence plate |
 | `charging_states` | `[charging]` | States of `charging_state` that count as charging |
 | `power_levels` | `[3.7, 11, 50]` | kW limits of bolt levels 1–3; above that level 4 |
-| `colors` | red, orange, yellow, light green, dark green | Exactly 5 segment colours |
+| `colors` | red, orange, yellow, yellow-green, light green, dark green | 5 segment colors (0–20 % … 80–100 %) plus an optional 6th color used for all segments when fully charged |
 | `image` | – | Own image instead of the silhouette, e.g. `/local/car.png` |
 | `values` | `[]` | List of `entity` (+ optional `name`, `icon`); first half on the left, second half on the right |
 

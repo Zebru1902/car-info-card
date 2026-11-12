@@ -12,6 +12,7 @@ const shots = [
   { file: "unplugged-light", scenario: "unplugged", theme: "light", width: 560 },
   { file: "charging-ac-light", scenario: "charging_ac", theme: "light", width: 560 },
   { file: "charging-dc-dark", scenario: "charging_dc", theme: "dark", width: 560 },
+  { file: "full-light", scenario: "full", theme: "light", width: 560 },
   { file: "slow-narrow-dark", scenario: "slow", theme: "dark", width: 360 },
 ];
 

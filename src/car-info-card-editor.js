@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import {
   DEFAULT_COLORS,
+  resolveColors,
   DEFAULT_CHARGING_STATES,
   DEFAULT_POWER_LEVELS,
   fireEvent,
@@ -117,7 +118,7 @@ class CarInfoCardEditor extends LitElement {
     if (!out.power_levels || sameArray(out.power_levels, DEFAULT_POWER_LEVELS)) {
       delete out.power_levels;
     }
-    if (!out.colors || sameArray(out.colors.map((c) => c.toLowerCase()), DEFAULT_COLORS)) {
+    if (!out.colors || sameArray(resolveColors(out.colors).map((c) => c.toLowerCase()), DEFAULT_COLORS)) {
       delete out.colors;
     }
     out.values = (out.values || []).map((v) => {
@@ -191,7 +192,7 @@ class CarInfoCardEditor extends LitElement {
   }
 
   _colorChanged(index, ev) {
-    const colors = [...(this._config.colors || DEFAULT_COLORS)];
+    const colors = [...resolveColors(this._config.colors)];
     colors[index] = ev.target.value;
     this._commit({ ...this._config, colors });
   }
@@ -281,7 +282,7 @@ class CarInfoCardEditor extends LitElement {
     if (!this._config || !this.hass) return nothing;
     const cfg = this._config;
     const levels = cfg.power_levels || DEFAULT_POWER_LEVELS;
-    const colors = cfg.colors || DEFAULT_COLORS;
+    const colors = resolveColors(cfg.colors);
     const valueSchema = VALUE_SCHEMA.map((s) => (s.name === "name" ? { ...s, _value: true } : s));
     const entitySchema = this._filterSchema(ENTITY_SCHEMA, Object.values(cfg.entities));
     const half = Math.ceil(cfg.values.length / 2);
@@ -359,7 +360,7 @@ class CarInfoCardEditor extends LitElement {
                   .value=${/^#[0-9a-f]{6}$/i.test(c) ? c : "#000000"}
                   @change=${(ev) => this._colorChanged(i, ev)}
                 />
-                <span>${COLOR_NAMES[i]}</span>
+                <span>${COLOR_NAMES[i] || this._t("editor.full_color")}</span>
               </label>
             `
           )}
