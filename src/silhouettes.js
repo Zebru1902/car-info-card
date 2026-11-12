@@ -114,19 +114,19 @@ export const SILHOUETTES = {
   },
 
   tractor: {
-    battery: { left: 62, top: 62, width: 32 },
+    battery: { left: 64, top: 59, width: 25 },
     draw: () => svg`
-      ${shadow(170)}
-      <rect class="body" x="62" y="8" width="122" height="8" rx="3"></rect>
-      <path class="body" d="M70 78 V20 Q70 16 74 16 H172 Q176 16 176 20 V78 Z"></path>
-      <path class="window" d="M82 26 H164 V70 H82 Z"></path>
-      <path class="body" d="M140 76 H336 Q352 76 354 92 V108 Q354 114 348 114 H140 Z"></path>
-      <path class="line" d="M336 84 V108 M342 84 V108 M348 86 V106"></path>
-      <rect class="mirror" x="300" y="38" width="7" height="38" rx="2"></rect>
-      <rect class="light front" x="346" y="80" width="8" height="8" rx="2"></rect>
-      <path class="body" d="M61 86 A52 52 0 0 1 159 86 L156 90 A48 48 0 0 0 64 90 Z"></path>
-      ${wheel(110, 104, 42, 22)}
-      ${wheel(312, 122, 22, 11)}
+      ${shadow(140)}
+      <rect class="body" x="92" y="10" width="116" height="8" rx="3"></rect>
+      <path class="body" d="M102 88 V22 Q102 16 108 16 H194 Q200 16 200 22 V88 Z"></path>
+      <path class="window" d="M114 26 H188 V68 H114 Z"></path>
+      <path class="body" d="M194 62 H304 Q320 62 322 78 V108 Q322 114 316 114 H194 Z"></path>
+      <path class="line" d="M308 72 V108 M314 72 V108"></path>
+      <rect class="mirror" x="260" y="30" width="7" height="34" rx="2"></rect>
+      <rect class="light front" x="314" y="66" width="8" height="8" rx="2"></rect>
+      <path class="body" d="M91 82 A52 52 0 0 1 189 82 L185 86 A48 48 0 0 0 95 86 Z"></path>
+      ${wheel(140, 100, 44, 22)}
+      ${wheel(288, 120, 24, 11)}
     `,
   },
 
