@@ -8,6 +8,7 @@ import {
 } from "./const.js";
 import { localize, LANGUAGES, TRANSLATIONS } from "./localize.js";
 import { SILHOUETTE_NAMES, DEFAULT_SILHOUETTE } from "./silhouettes.js";
+import { STANDARD_VALUES, suggestEntity } from "./suggest.js";
 
 const COLOR_NAMES = ["0–20 %", "20–40 %", "40–60 %", "60–80 %", "80–100 %"];
 
@@ -129,7 +130,8 @@ class CarInfoCardEditor extends LitElement {
       delete out.colors;
     }
     out.values = (out.values || []).map((v) => {
-      const item = { entity: v.entity };
+      const item = { entity: v.entity || "" };
+      if (!isEmpty(v.type)) item.type = v.type;
       if (!isEmpty(v.name)) item.name = v.name;
       if (!isEmpty(v.icon)) item.icon = v.icon;
       return item;
@@ -152,9 +154,32 @@ class CarInfoCardEditor extends LitElement {
     });
   }
 
+  // Selecting a device fills empty entity fields with matching entities of it
   _deviceChanged(ev) {
     ev.stopPropagation();
-    this._commit({ ...this._config, device: ev.detail.value.device });
+    const device = ev.detail.value.device;
+    const entities = { ...this._config.entities };
+    const ids = this._entitiesOfDevice(device);
+    if (ids) {
+      for (const key of ["battery", "charging_power", "charging_state"]) {
+        if (isEmpty(entities[key])) {
+          const found = suggestEntity(this.hass, key, ids);
+          if (found) entities[key] = found;
+        }
+      }
+    }
+    this._commit({ ...this._config, device, entities });
+  }
+
+  // Ticking a standard value adds it with a suggested entity; unticking removes it
+  _toggleStandard(type, on) {
+    const values = this._config.values.filter((v) => v.type !== type);
+    if (on) {
+      const used = values.map((v) => v.entity);
+      const entity = suggestEntity(this.hass, type, this._deviceEntities(), used) || "";
+      values.push({ type, entity });
+    }
+    this._commit({ ...this._config, values });
   }
 
   _entitiesChanged(ev) {
@@ -230,7 +255,10 @@ class CarInfoCardEditor extends LitElement {
 
   // Entities of the selected device; undefined means "no filter"
   _deviceEntities() {
-    const device = this._config.device;
+    return this._entitiesOfDevice(this._config.device);
+  }
+
+  _entitiesOfDevice(device) {
     if (!device || !this.hass || !this.hass.entities) return undefined;
     const ids = Object.values(this.hass.entities)
       .filter((e) => e.device_id === device)
@@ -355,6 +383,22 @@ class CarInfoCardEditor extends LitElement {
 
       <div class="section">
         <h3>${this._t("editor.values")}</h3>
+        <div class="quick">
+          ${STANDARD_VALUES.map(
+            (type) => html`
+              <label>
+                <input
+                  type="checkbox"
+                  data-type=${type}
+                  .checked=${cfg.values.some((v) => v.type === type)}
+                  @change=${(ev) => this._toggleStandard(type, ev.target.checked)}
+                />
+                ${this._t(`value.${type}`)}
+              </label>
+            `
+          )}
+        </div>
+        <p class="note">${this._t("editor.quick_note")}</p>
         <p class="note">${this._t("editor.values_note")}</p>
         ${cfg.values.map(
           (v, i) => html`
@@ -479,6 +523,23 @@ class CarInfoCardEditor extends LitElement {
       }
       .add {
         margin-top: 8px;
+      }
+      .quick {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 6px 12px;
+        margin-bottom: 8px;
+      }
+      .quick label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+      }
+      .quick input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary-color, #03a9f4);
       }
       .colors {
         display: flex;

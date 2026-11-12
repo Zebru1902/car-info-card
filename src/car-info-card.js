@@ -159,7 +159,8 @@ class CarInfoCard extends LitElement {
     }
     const soc = this._soc();
     const level = this._chargeLevel();
-    const values = cfg.values;
+    // Rows without an entity are still being set up in the editor
+    const values = cfg.values.filter((v) => v.entity);
     const half = Math.ceil(values.length / 2);
     const left = values.slice(0, half);
     const right = values.slice(half);

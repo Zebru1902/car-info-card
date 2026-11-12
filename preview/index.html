@@ -96,6 +96,8 @@
     target_temperature: ["Target temperature", "°C", "mdi:thermometer", 1],
     climate_time_left: ["Climate time left", "min", "mdi:fan", 0],
   };
+  const DEVICE_CLASS = { battery_level: "battery", odometer: "distance", range: "distance",
+    charging_power: "power", target_temperature: "temperature", time_to_full: "duration" };
   const CHARGING_OPTIONS = ["charging", "connect_cable", "ready_for_charging",
     "conserving", "discharging", "charging_interrupted"];
 
@@ -105,6 +107,7 @@
       const [name, unit, icon] = META[k];
       states[P + k] = { entity_id: P + k, state: v,
         attributes: { friendly_name: "My car " + name, icon,
+          ...(DEVICE_CLASS[k] ? { device_class: DEVICE_CLASS[k] } : {}),
           ...(k === "charging_state" ? { device_class: "enum", options: CHARGING_OPTIONS } : {}),
           ...(unit ? { unit_of_measurement: unit } : {}) } };
     }
@@ -112,7 +115,7 @@
       attributes: { friendly_name: "My car Licence plate" } };
     // Other devices, so the device filter in the editor has something to hide
     states["sensor.wallbox_power"] = { entity_id: "sensor.wallbox_power", state: "0.0",
-      attributes: { friendly_name: "Wallbox Power", unit_of_measurement: "kW", icon: "mdi:ev-station" } };
+      attributes: { friendly_name: "Wallbox Power", unit_of_measurement: "kW", device_class: "power", icon: "mdi:ev-station" } };
     states["sensor.outdoor_temperature"] = { entity_id: "sensor.outdoor_temperature", state: "8.5",
       attributes: { friendly_name: "Outdoor temperature", unit_of_measurement: "°C", icon: "mdi:thermometer" } };
     const devices = {

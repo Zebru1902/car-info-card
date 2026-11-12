@@ -232,6 +232,46 @@ try {
     assert.ok(!battery.includes(P + "range"));
   });
 
+  // 8a. Selecting a device fills empty entity fields; standard values by ticking
+  await step("device auto-fill and standard values", async () => {
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light",
+      config: { entities: {} } }));
+    await field(1, "device").selectOption("dev_car");
+    assert.deepEqual((await cfg()).entities, {
+      battery: P + "battery_level",
+      charging_power: P + "charging_power",
+      charging_state: P + "charging_state",
+    });
+    assert.equal(await page.locator("car-info-card .soc").textContent(), "35 %");
+
+    const tick = (type) => editor.locator(`.quick input[data-type=${type}]`);
+    for (const type of ["odometer", "range", "time_to_full", "charging_state_value", "charging_type", "target_temperature"]) {
+      await tick(type).check();
+    }
+    assert.deepEqual((await cfg()).values, [
+      { type: "odometer", entity: P + "odometer" },
+      { type: "range", entity: P + "range" },
+      { type: "time_to_full", entity: P + "time_to_full" },
+      { type: "charging_state_value", entity: P + "charging_state" },
+      { type: "charging_type", entity: P + "charging_type" },
+      { type: "target_temperature", entity: P + "target_temperature" },
+    ]);
+    assert.deepEqual(await page.locator("car-info-card .value .label").allTextContents(),
+      ["Odometer", "Range", "Time to full", "Charging state", "Charging type", "Target temperature"]);
+
+    await tick("range").uncheck();
+    assert.ok(!(await cfg()).values.some((v) => v.type === "range"));
+    assert.equal(await tick("range").isChecked(), false);
+
+    // no matching entity: an empty row to fill in, not shown on the card yet
+    await field(1, "device").selectOption("dev_wallbox");
+    await tick("odometer").uncheck();
+    await tick("odometer").check();
+    const odo = (await cfg()).values.find((v) => v.type === "odometer");
+    assert.deepEqual(odo, { type: "odometer", entity: "" });
+    assert.equal(await page.locator("car-info-card .value").count(), 4);
+  });
+
   // 8b. Language option overrides the Home Assistant language
   await step("language option", async () => {
     const options = await field(0, "language").locator("option")

@@ -6,8 +6,8 @@ class StubHaForm extends HTMLElement {
   set data(v) { this._data = v || {}; this._render(); }
   get data() { return this._data; }
   set schema(v) { this._schema = v; this._render(); }
-  set computeLabel(f) { this._label = f; }
-  set computeHelper(f) { this._helper = f; }
+  set computeLabel(f) { this._label = f; this._render(); }
+  set computeHelper(f) { this._helper = f; this._render(); }
 
   _emit(name, value) {
     const data = { ...this._data, [name]: value };
