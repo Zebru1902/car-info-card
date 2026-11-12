@@ -94,18 +94,18 @@ export const SILHOUETTES = {
   },
 
   race: {
-    battery: { left: 34, top: 64, width: 28 },
+    battery: { left: 50, top: 64, width: 30 },
     draw: () => svg`
       ${shadow(185)}
       <rect class="body" x="16" y="38" width="44" height="9" rx="2"></rect>
       <rect class="body" x="18" y="34" width="6" height="34" rx="2"></rect>
       <path class="strut" d="M40 47 V82"></path>
-      <path class="body" d="M40 108 V90 Q42 80 54 78 L150 74 Q170 60 196 58 H222 Q236 60 244 72
-        L300 86 L386 104 Q394 108 386 113 L300 116 H60 Q40 116 40 108 Z"></path>
-      <path class="body" d="M140 76 L160 50 Q166 42 176 42 H188 L194 60 Z"></path>
+      <path class="body" d="M40 108 V90 Q42 80 54 78 L206 74 Q226 60 252 58 H278 Q292 60 300 72
+        L330 88 L386 104 Q394 108 386 113 L300 116 H60 Q40 116 40 108 Z"></path>
+      <path class="body" d="M196 76 L216 50 Q222 42 232 42 H244 L250 60 Z"></path>
       <path class="line" d="M120 96 H300"></path>
-      <circle class="helmet" cx="206" cy="54" r="11"></circle>
-      <path class="strut" d="M184 62 Q206 40 238 64"></path>
+      <circle class="helmet" cx="264" cy="54" r="11"></circle>
+      <path class="strut" d="M242 62 Q264 40 296 64"></path>
       <rect class="body" x="330" y="120" width="66" height="6" rx="2"></rect>
       <rect class="body" x="390" y="108" width="6" height="18" rx="2"></rect>
       ${wheel(92, 112, 32, 15)}

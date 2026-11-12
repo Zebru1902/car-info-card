@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1 – 2026-11-12
+
+- The card explains when the battery level entity is missing or does not report a number (e.g. when the charging state was selected by mistake)
+- Value labels without an own name leave out the device name ("Odometer" instead of "My car Odometer")
+- Editor: selecting a device fills empty entity fields (battery level, charging power, charging state) automatically
+- Editor: standard values (odometer, range, charging power, time to full, charging state, charging type, target temperature) can be added by ticking a box; the matching entity of the device is filled in
+- Formula race car: battery centred
+
 ## 0.2.0 – 2026-11-11
 
 - First published version

@@ -159,7 +159,8 @@ class CarInfoCard extends LitElement {
     }
     const soc = this._soc();
     const level = this._chargeLevel();
-    const values = cfg.values;
+    // Rows without an entity are still being set up in the editor
+    const values = cfg.values.filter((v) => v.entity);
     const half = Math.ceil(values.length / 2);
     const left = values.slice(0, half);
     const right = values.slice(half);
@@ -191,6 +192,7 @@ class CarInfoCard extends LitElement {
               </div>
             </div>
             <div class="soc">${soc === undefined ? "–" : `${Math.round(soc)} %`}</div>
+            ${this._renderBatteryProblem()}
             ${this._renderStatus(level)}
           </div>
           <div class="values right">${right.map((v) => this._renderValue(v))}</div>
@@ -223,12 +225,34 @@ class CarInfoCard extends LitElement {
     </div>`;
   }
 
+  // Explains why no battery level is shown: entity missing or not numeric.
+  // unknown/unavailable is a normal state and only shows "–".
+  _renderBatteryProblem() {
+    const entity = this._config.entities.battery;
+    const s = this._stateObj(entity);
+    let text;
+    if (!s) text = this._t("card.battery_missing", { entity });
+    else if (this._isAvailable(s) && !Number.isFinite(parseFloat(s.state))) {
+      text = this._t("card.battery_not_numeric", { state: this._formatState(s) });
+    }
+    return text ? html`<div class="problem">${text}</div>` : nothing;
+  }
+
+  // Friendly name without the device name in front ("My car Odometer" -> "Odometer")
+  _entityName(stateObj) {
+    const full = stateObj.attributes.friendly_name || stateObj.entity_id;
+    const entry = this.hass.entities && this.hass.entities[stateObj.entity_id];
+    const device = entry && entry.device_id && this.hass.devices && this.hass.devices[entry.device_id];
+    const deviceName = device && (device.name_by_user || device.name);
+    if (deviceName && full.startsWith(deviceName + " ") && full.length > deviceName.length + 1) {
+      return full.slice(deviceName.length + 1);
+    }
+    return full;
+  }
+
   _renderValue(item) {
     const stateObj = this._stateObj(item.entity);
-    const name =
-      item.name ||
-      (stateObj && stateObj.attributes.friendly_name) ||
-      item.entity;
+    const name = item.name || (stateObj ? this._entityName(stateObj) : item.entity);
     return html`
       <div class="value" @click=${() => this._moreInfo(item.entity)}>
         ${item.icon
@@ -535,6 +559,12 @@ class CarInfoCard extends LitElement {
         font-weight: 600;
         line-height: 1.2;
         margin-top: 4px;
+      }
+      .problem {
+        font-size: 0.8rem;
+        color: var(--error-color, #db4437);
+        text-align: center;
+        margin-bottom: 2px;
       }
       .status {
         font-size: 0.85rem;

@@ -1,4 +1,6 @@
 {
+  "card.battery_missing": "Ladestand-Entität {entity} nicht gefunden",
+  "card.battery_not_numeric": "Die Ladestand-Entität liefert keine Zahl ({state}). Bitte den Sensor für den Ladestand in % wählen.",
   "card.charging": "lädt",
   "card.description": "Auto-Karte mit Batterie in 5 Segmenten, Lade-Blitz und frei wählbaren Werten.",
   "card.hint": "Bitte im Editor die Entität für den Ladestand (entities.battery) wählen.",
@@ -15,6 +17,7 @@
   "editor.left": "links",
   "editor.move_down": "Nach unten",
   "editor.move_up": "Nach oben",
+  "editor.quick_note": "Wert anhaken, um ihn hinzuzufügen. Die passende Entität des gewählten Geräts wird automatisch eingetragen; wird keine gefunden, in der neuen Zeile eine wählen.",
   "editor.remove": "Entfernen",
   "editor.reset_colors": "Standardfarben",
   "editor.right": "rechts",
@@ -22,7 +25,7 @@
   "editor.values_note": "Die erste Hälfte steht links, die zweite rechts.",
   "helper.charging_state": "Ohne Ladezustand gilt das Auto als ladend, sobald die Ladeleistung über 0 liegt.",
   "helper.charging_states": "Standard: charging",
-  "helper.device": "Zeigt in den Auswahlfeldern unten nur die Entitäten dieses Geräts.",
+  "helper.device": "Zeigt in den Auswahlfeldern unten nur die Entitäten dieses Geräts und füllt leere Felder automatisch.",
   "helper.image": "Leer lassen, um das oben gewählte Fahrzeug zu zeigen.",
   "helper.language": "Sprache der Texte von Karte und Editor. Werte formatiert immer Home Assistant.",
   "helper.silhouette": "Eingebaute Zeichnung. Ein eigenes Bild darunter ersetzt sie.",
@@ -52,5 +55,12 @@
   "silhouette.suv": "SUV",
   "silhouette.tractor": "Traktor",
   "silhouette.van": "Transporter",
-  "silhouette.vintage": "Oldtimer"
+  "silhouette.vintage": "Oldtimer",
+  "value.charging_power_value": "Ladeleistung",
+  "value.charging_state_value": "Ladezustand",
+  "value.charging_type": "Ladetyp",
+  "value.odometer": "Kilometerstand",
+  "value.range": "Reichweite",
+  "value.target_temperature": "Klima-Solltemperatur",
+  "value.time_to_full": "Restzeit bis voll"
 }

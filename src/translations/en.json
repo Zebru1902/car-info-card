@@ -1,4 +1,6 @@
 {
+  "card.battery_missing": "Battery level entity {entity} not found",
+  "card.battery_not_numeric": "The battery level entity does not report a number ({state}). Please select the battery level sensor in %.",
   "card.charging": "charging",
   "card.description": "Electric car card with a 5-segment battery, charging bolt and configurable values.",
   "card.hint": "Please select the battery level entity (entities.battery) in the editor.",
@@ -15,6 +17,7 @@
   "editor.left": "left",
   "editor.move_down": "Move down",
   "editor.move_up": "Move up",
+  "editor.quick_note": "Tick a value to add it. The matching entity of the selected device is filled in automatically; if none is found, pick one in the new row.",
   "editor.remove": "Remove",
   "editor.reset_colors": "Default colors",
   "editor.right": "right",
@@ -22,7 +25,7 @@
   "editor.values_note": "The first half is shown on the left, the second half on the right.",
   "helper.charging_state": "Without a charging state, the car counts as charging while the charging power is above 0.",
   "helper.charging_states": "Default: charging",
-  "helper.device": "Only shows the entities of this device in the pickers below.",
+  "helper.device": "Only shows the entities of this device in the pickers below and fills empty fields automatically.",
   "helper.image": "Leave empty to use the vehicle selected above.",
   "helper.language": "Language of the card and editor texts. Values are always formatted by Home Assistant.",
   "helper.silhouette": "Built-in drawing. A custom image below replaces it.",
@@ -52,5 +55,12 @@
   "silhouette.suv": "SUV",
   "silhouette.tractor": "Tractor",
   "silhouette.van": "Van",
-  "silhouette.vintage": "Vintage car"
+  "silhouette.vintage": "Vintage car",
+  "value.charging_power_value": "Charging power",
+  "value.charging_state_value": "Charging state",
+  "value.charging_type": "Charging type",
+  "value.odometer": "Odometer",
+  "value.range": "Range",
+  "value.target_temperature": "Target temperature",
+  "value.time_to_full": "Time to full"
 }

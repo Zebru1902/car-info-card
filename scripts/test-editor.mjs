@@ -61,6 +61,9 @@ try {
     assert.deepEqual((await cfg()).values.map((v) => v.entity),
       [P + "odometer", P + "range", P + "charging_type"]);
     assert.equal(await page.locator("car-info-card .value").count(), 3);
+    // without an own label, the device name is left out of the entity name
+    assert.deepEqual(await page.locator("car-info-card .value .label").allTextContents(),
+      ["Odometer", "Range", "Charging type"]);
   });
   await step("move value", async () => {
     await editor.locator(".value-row").nth(2).locator("button[title='Move up']").click();
@@ -129,6 +132,25 @@ try {
     await page.evaluate(() => window.render({ scenario: "charging_ac", theme: "light", width: 560,
       config: { colors: ["#111111", "#222222", "#333333", "#444444", "#555555", "#666666"] } }));
     assert.deepEqual(await fills(), ["#111111", "#222222", "#333333", "#444444"]);
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light" }));
+  });
+
+  // 6c. Wrong or missing battery entity: the card explains the problem
+  await step("battery entity problems", async () => {
+    const problem = () => page.locator("car-info-card .problem");
+    await page.evaluate(() => window.render({ scenario: "unplugged", theme: "light", width: 560,
+      config: { entities: { battery: "sensor.my_car_charging_state" } } }));
+    assert.equal(await page.locator("car-info-card .soc").textContent(), "–");
+    assert.match(await problem().textContent(), /does not report a number \(Connect cable\)/);
+    await page.evaluate(() => window.render({ scenario: "unplugged", theme: "light", width: 560,
+      config: { entities: { battery: "sensor.does_not_exist" } } }));
+    assert.match(await problem().textContent(), /sensor\.does_not_exist not found/);
+    // unknown is a normal state: only "–", no problem text
+    await page.evaluate(() => window.render({ scenario: "unplugged", theme: "light", width: 560,
+      config: { entities: { battery: "sensor.my_car_time_to_full" } } }));
+    assert.equal(await problem().count(), 0);
+    await page.evaluate(() => window.render({ scenario: "unplugged", theme: "light", width: 560 }));
+    assert.equal(await problem().count(), 0);
     await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light" }));
   });
 
@@ -208,6 +230,46 @@ try {
     assert.ok(battery.includes(P + "battery_level"));
     assert.ok(battery.includes("sensor.wallbox_power"));
     assert.ok(!battery.includes(P + "range"));
+  });
+
+  // 8a. Selecting a device fills empty entity fields; standard values by ticking
+  await step("device auto-fill and standard values", async () => {
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light",
+      config: { entities: {} } }));
+    await field(1, "device").selectOption("dev_car");
+    assert.deepEqual((await cfg()).entities, {
+      battery: P + "battery_level",
+      charging_power: P + "charging_power",
+      charging_state: P + "charging_state",
+    });
+    assert.equal(await page.locator("car-info-card .soc").textContent(), "35 %");
+
+    const tick = (type) => editor.locator(`.quick input[data-type=${type}]`);
+    for (const type of ["odometer", "range", "time_to_full", "charging_state_value", "charging_type", "target_temperature"]) {
+      await tick(type).check();
+    }
+    assert.deepEqual((await cfg()).values, [
+      { type: "odometer", entity: P + "odometer" },
+      { type: "range", entity: P + "range" },
+      { type: "time_to_full", entity: P + "time_to_full" },
+      { type: "charging_state_value", entity: P + "charging_state" },
+      { type: "charging_type", entity: P + "charging_type" },
+      { type: "target_temperature", entity: P + "target_temperature" },
+    ]);
+    assert.deepEqual(await page.locator("car-info-card .value .label").allTextContents(),
+      ["Odometer", "Range", "Time to full", "Charging state", "Charging type", "Target temperature"]);
+
+    await tick("range").uncheck();
+    assert.ok(!(await cfg()).values.some((v) => v.type === "range"));
+    assert.equal(await tick("range").isChecked(), false);
+
+    // no matching entity: an empty row to fill in, not shown on the card yet
+    await field(1, "device").selectOption("dev_wallbox");
+    await tick("odometer").uncheck();
+    await tick("odometer").check();
+    const odo = (await cfg()).values.find((v) => v.type === "odometer");
+    assert.deepEqual(odo, { type: "odometer", entity: "" });
+    assert.equal(await page.locator("car-info-card .value").count(), 4);
   });
 
   // 8b. Language option overrides the Home Assistant language
