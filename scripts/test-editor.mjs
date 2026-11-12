@@ -61,6 +61,9 @@ try {
     assert.deepEqual((await cfg()).values.map((v) => v.entity),
       [P + "odometer", P + "range", P + "charging_type"]);
     assert.equal(await page.locator("car-info-card .value").count(), 3);
+    // without an own label, the device name is left out of the entity name
+    assert.deepEqual(await page.locator("car-info-card .value .label").allTextContents(),
+      ["Odometer", "Range", "Charging type"]);
   });
   await step("move value", async () => {
     await editor.locator(".value-row").nth(2).locator("button[title='Move up']").click();
@@ -129,6 +132,25 @@ try {
     await page.evaluate(() => window.render({ scenario: "charging_ac", theme: "light", width: 560,
       config: { colors: ["#111111", "#222222", "#333333", "#444444", "#555555", "#666666"] } }));
     assert.deepEqual(await fills(), ["#111111", "#222222", "#333333", "#444444"]);
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light" }));
+  });
+
+  // 6c. Wrong or missing battery entity: the card explains the problem
+  await step("battery entity problems", async () => {
+    const problem = () => page.locator("car-info-card .problem");
+    await page.evaluate(() => window.render({ scenario: "unplugged", theme: "light", width: 560,
+      config: { entities: { battery: "sensor.my_car_charging_state" } } }));
+    assert.equal(await page.locator("car-info-card .soc").textContent(), "–");
+    assert.match(await problem().textContent(), /does not report a number \(Connect cable\)/);
+    await page.evaluate(() => window.render({ scenario: "unplugged", theme: "light", width: 560,
+      config: { entities: { battery: "sensor.does_not_exist" } } }));
+    assert.match(await problem().textContent(), /sensor\.does_not_exist not found/);
+    // unknown is a normal state: only "–", no problem text
+    await page.evaluate(() => window.render({ scenario: "unplugged", theme: "light", width: 560,
+      config: { entities: { battery: "sensor.my_car_time_to_full" } } }));
+    assert.equal(await problem().count(), 0);
+    await page.evaluate(() => window.render({ scenario: "unplugged", theme: "light", width: 560 }));
+    assert.equal(await problem().count(), 0);
     await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light" }));
   });
 

@@ -1,4 +1,6 @@
 {
+  "card.battery_missing": "Battery level entity {entity} not found",
+  "card.battery_not_numeric": "The battery level entity does not report a number ({state}). Please select the battery level sensor in %.",
   "card.charging": "charging",
   "card.description": "Electric car card with a 5-segment battery, charging bolt and configurable values.",
   "card.hint": "Please select the battery level entity (entities.battery) in the editor.",

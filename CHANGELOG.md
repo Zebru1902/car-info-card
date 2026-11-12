@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 – 2026-11-12
+
+- The card explains when the battery level entity is missing or does not report a number (e.g. when the charging state was selected by mistake)
+- Value labels without an own name leave out the device name ("Odometer" instead of "My car Odometer")
+
 ## 0.2.0 – 2026-11-11
 
 - First published version

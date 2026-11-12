@@ -1,4 +1,6 @@
 {
+  "card.battery_missing": "Ladestand-Entität {entity} nicht gefunden",
+  "card.battery_not_numeric": "Die Ladestand-Entität liefert keine Zahl ({state}). Bitte den Sensor für den Ladestand in % wählen.",
   "card.charging": "lädt",
   "card.description": "Auto-Karte mit Batterie in 5 Segmenten, Lade-Blitz und frei wählbaren Werten.",
   "card.hint": "Bitte im Editor die Entität für den Ladestand (entities.battery) wählen.",
