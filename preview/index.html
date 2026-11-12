@@ -12,6 +12,7 @@
     --card-background-color:#1c1c1c; --primary-text-color:#e1e1e1; --secondary-text-color:#9b9b9b; }
   #wrap { width: var(--w, 560px); }
   #wrap.editor { width: 1044px; display: grid; grid-template-columns: 560px 460px; gap: 24px; align-items: start; }
+  #wrap.gallery { width: 1044px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
   #editor-box { background: var(--card-background-color); border-radius: 12px; padding: 16px;
     border: 1px solid rgba(127,127,127,.25); color: var(--primary-text-color); }
   #yaml { font: 12px/1.4 monospace; white-space: pre-wrap; color: var(--secondary-text-color); margin-top: 16px; }
@@ -72,6 +73,12 @@
     charging_dc: { odometer: "15840", battery_level: "71", range: "265.0",
       charging_power: "85.0", charging_state: "charging", time_to_full: "18",
       charging_type: "dc", target_temperature: "21.0", climate_time_left: "unknown" },
+    nearly_full: { odometer: "15840", battery_level: "85", range: "312.0",
+      charging_power: "7.2", charging_state: "charging", time_to_full: "25",
+      charging_type: "ac", target_temperature: "21.0", climate_time_left: "unknown" },
+    full: { odometer: "15840", battery_level: "100", range: "368.0",
+      charging_power: "0.0", charging_state: "conserving", time_to_full: "0",
+      charging_type: "not_charging", target_temperature: "21.0", climate_time_left: "unknown" },
     slow: { odometer: "15840", battery_level: "14", range: "52.0",
       charging_power: "2.3", charging_state: "charging", time_to_full: "920",
       charging_type: "ac", target_temperature: "21.0", climate_time_left: "unknown" },
@@ -103,14 +110,33 @@
     }
     states[P + "licence_plate"] = { entity_id: P + "licence_plate", state: "AB-CD 123",
       attributes: { friendly_name: "My car Licence plate" } };
+    // Other devices, so the device filter in the editor has something to hide
+    states["sensor.wallbox_power"] = { entity_id: "sensor.wallbox_power", state: "0.0",
+      attributes: { friendly_name: "Wallbox Power", unit_of_measurement: "kW", icon: "mdi:ev-station" } };
+    states["sensor.outdoor_temperature"] = { entity_id: "sensor.outdoor_temperature", state: "8.5",
+      attributes: { friendly_name: "Outdoor temperature", unit_of_measurement: "°C", icon: "mdi:thermometer" } };
+    const devices = {
+      dev_car: { id: "dev_car", name: "My car" },
+      dev_wallbox: { id: "dev_wallbox", name: "Wallbox" },
+    };
+    const entities = {};
+    for (const id of Object.keys(states)) {
+      const device_id = id.startsWith(P) ? "dev_car" : id.startsWith("sensor.wallbox") ? "dev_wallbox" : null;
+      entities[id] = { entity_id: id, device_id };
+    }
     return {
       states,
+      devices,
+      entities,
       language,
       locale: { language },
       formatEntityState(s) {
         const key = s.entity_id.replace(P, "");
         const meta = META[key];
-        if (!meta) return s.state;
+        if (!meta) {
+          const unit = s.attributes.unit_of_measurement;
+          return unit ? `${s.state} ${unit}` : s.state;
+        }
         const [, unit, , digits] = meta;
         if (!unit) return ENUM[s.state] ?? s.state;
         return `${nf(s.state, digits)} ${unit}`;
@@ -121,6 +147,7 @@
   function baseConfig() {
     return {
       name: "My car",
+      device: "dev_car",
       entities: {
         battery: P + "battery_level",
         charging_power: P + "charging_power",
@@ -138,13 +165,13 @@
     };
   }
 
-  window.render = ({ scenario, theme, width }) => {
+  window.render = ({ scenario, theme, width, config }) => {
     document.body.className = theme;
     const wrap = document.getElementById("wrap");
     wrap.className = "";
     wrap.style.setProperty("--w", width + "px");
     const card = document.createElement("car-info-card");
-    card.setConfig(baseConfig());
+    card.setConfig({ ...baseConfig(), ...(config || {}) });
     card.hass = makeHass(SCENARIOS[scenario]);
     wrap.replaceChildren(card);
     return card.updateComplete;
@@ -179,6 +206,22 @@
     wrap.replaceChildren(col, box);
     await editor.updateComplete;
     await card.updateComplete;
+  };
+
+  // All built-in vehicle drawings side by side
+  window.renderGallery = async ({ theme, scenario = "charging_ac", names }) => {
+    document.body.className = theme;
+    const wrap = document.getElementById("wrap");
+    wrap.className = "gallery";
+    wrap.style.removeProperty("--w");
+    const cards = names.map((name) => {
+      const card = document.createElement("car-info-card");
+      card.setConfig({ ...baseConfig(), name, values: [], show_plate: false, silhouette: name });
+      card.hass = makeHass(SCENARIOS[scenario]);
+      return card;
+    });
+    wrap.replaceChildren(...cards);
+    await Promise.all(cards.map((c) => c.updateComplete));
   };
 
   window.ready = true;

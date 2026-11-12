@@ -6,7 +6,7 @@
     "build": "rollup -c",
     "watch": "rollup -c -w",
     "preview": "npm run build && node scripts/preview.mjs",
-    "test": "npm run build && node scripts/test-editor.mjs"
+    "test": "npm run build && node scripts/check-translations.mjs && node scripts/test-editor.mjs"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@mdi/js": "^7.4.47",
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^1.0.2",
     "rollup": "^4.68.2"

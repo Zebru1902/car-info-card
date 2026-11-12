@@ -23,6 +23,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - run: node scripts/check-translations.mjs
       - name: dist/car-info-card.js must match the source
         run: git diff --exit-code dist/
 

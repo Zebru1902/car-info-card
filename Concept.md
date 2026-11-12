@@ -1,12 +1,12 @@
 # Concept: Car Info Card
 
 ## Goal
-A Home Assistant dashboard card for electric cars: a generic SUV silhouette with a battery in the middle, split into 5 segments of 20 % each (red, orange, yellow, light green, dark green), with a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its strength and animation follow the charging power. Important values (odometer, range, charging power, time to full, charging state, target temperature, …) are shown around the car and can be chosen in the card editor. Distribution through the Marketplace (built into Home Assistant since 2026.11, reads the HACS catalog).
+A Home Assistant dashboard card for electric cars: a generic SUV silhouette with a battery in the middle, split into 5 segments of 20 % each (red, orange, yellow, yellow-green, light green; all segments dark green when fully charged), with a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its strength and animation follow the charging power. Important values (odometer, range, charging power, time to full, charging state, target temperature, …) are shown around the car and can be chosen in the card editor. Distribution through the Marketplace (built into Home Assistant since 2026.11, reads the HACS catalog).
 
 ## Guidelines
-- Code, comments and documentation in English. The card UI is English by default and translated via `src/localize.js` (currently German).
+- Code, comments and documentation in English. The card UI follows the Home Assistant language (option `language` to fix it); texts live in `src/translations/<language>.json` (English reference, German), checked by `scripts/check-translations.mjs`.
 - Only verified facts in the documentation; mark anything uncertain as "⚠️ NOT VERIFIED".
-- No brand names in the repository or card name; no copy of a recognisable car model. Own generic SUV silhouette as SVG; option `image` for a custom picture.
+- No brand names in the repository or card name; no copy of a recognisable car model. Own generic vehicle drawings as SVG (`silhouette`: suv, sedan, hatchback, van, race, tractor, vintage; in `src/silhouettes.js`); option `image` for a custom picture.
 - Generic card: entities are assigned in the configuration, no fixed entity IDs in the code. Examples and test data use neutral names (`sensor.my_car_*`).
 - No tokens, passwords, keys or personal data in the repository.
 

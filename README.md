@@ -1,6 +1,6 @@
 # Car Info Card
 
-A Home Assistant dashboard card for electric cars: a generic SUV silhouette with a battery in the middle, split into 5 segments of 20 % each (red, orange, yellow, light green, dark green), and a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its pulse, glow and size follow the charging power. Any values you like (odometer, range, charging power, time to full, target temperature, …) are shown around the car.
+A Home Assistant dashboard card for electric cars: a generic SUV silhouette with a battery in the middle, split into 5 segments of 20 % each (red, orange, yellow, yellow-green, light green; all dark green when full), and a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its pulse, glow and size follow the charging power. Any values you like (odometer, range, charging power, time to full, target temperature, …) are shown around the car.
 
 > Status: **0.2.0**, early version. Not yet tested in a real Home Assistant during charging.
 
@@ -11,13 +11,14 @@ A Home Assistant dashboard card for electric cars: a generic SUV silhouette with
 ## Features
 
 - Battery with 5 colour segments; the partly filled segment shows the exact level and blinks while charging
+- All segments turn dark green only when the battery is full, so 85 % never looks full
 - Charging bolt in 4 power levels (default limits 3.7 / 11 / 50 kW, configurable)
 - Works with any integration: all entities are assigned in the configuration
 - Values on the left and right of the car; two columns below the car on narrow cards
-- Optional own image instead of the built-in silhouette
-- Visual card editor
+- 7 built-in vehicles (SUV, sedan, hatchback, van, and for fun a formula race car, a tractor and a vintage car) or your own image
+- Visual card editor; pick your car's device to see only its entities
 - Light and dark themes, respects "reduced motion"
-- User interface in English and German (follows the Home Assistant language)
+- User interface in English and German: follows the Home Assistant language or a fixed `language`; more languages via translation files
 
 <!-- ha-marketplace:exclude-start -->
 ## Installation
@@ -35,6 +36,12 @@ The link opens this repository in the Marketplace of your Home Assistant (2026.1
 3. Reload the browser (clear the cache).
 <!-- ha-marketplace:exclude-end -->
 
+## Built-in vehicles
+
+![Built-in vehicles](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/vehicles-light.png)
+
+All drawings are generic and made for this card; none of them copies a real car model.
+
 ## Configuration
 
 Add the card via "Add card" → "Car Info Card" and use the editor, or in YAML:
@@ -42,6 +49,7 @@ Add the card via "Add card" → "Car Info Card" and use the editor, or in YAML:
 ```yaml
 type: custom:car-info-card
 name: My car
+device: 0123456789abcdef0123456789abcdef  # optional, set by the editor
 entities:
   battery: sensor.my_car_battery_level          # required
   charging_power: sensor.my_car_charging_power  # optional
@@ -61,15 +69,19 @@ values:
 | Option | Default | Description |
 |---|---|---|
 | `name` | – | Title |
-| `show_name` | `true` | Show the header (name, licence plate) |
+| `show_name` | `true` | Show the name in the header |
+| `show_plate` | `true` | Show the licence plate in the header (needs `entities.plate`) |
+| `device` | – | Device ID; only used by the editor to show just this device's entities in the pickers |
 | `entities.battery` | – | State of charge in % (required) |
 | `entities.charging_power` | – | Charging power; W, kW and MW are converted |
 | `entities.charging_state` | – | Charging state; without it, power > 0 counts as charging |
 | `entities.plate` | – | Licence plate |
 | `charging_states` | `[charging]` | States of `charging_state` that count as charging |
 | `power_levels` | `[3.7, 11, 50]` | kW limits of bolt levels 1–3; above that level 4 |
-| `colors` | red, orange, yellow, light green, dark green | Exactly 5 segment colours |
-| `image` | – | Own image instead of the silhouette, e.g. `/local/car.png` |
+| `colors` | red, orange, yellow, yellow-green, light green, dark green | 5 segment colors (0–20 % … 80–100 %) plus an optional 6th color used for all segments when fully charged |
+| `silhouette` | `suv` | Built-in vehicle: `suv`, `sedan`, `hatchback`, `van`, `race`, `tractor`, `vintage` |
+| `image` | – | Own image instead of the built-in vehicle, e.g. `/local/car.png` |
+| `language` | `auto` | Language of the card's texts: `auto` (Home Assistant language), `en`, `de` |
 | `values` | `[]` | List of `entity` (+ optional `name`, `icon`); first half on the left, second half on the right |
 
 ![Card editor (preview)](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/editor-light.png)
@@ -87,7 +99,11 @@ npm run preview   # build + Playwright screenshots in docs/screenshots
 npm test          # build + editor test in the browser (Playwright)
 ```
 
-`preview/index.html` simulates the `hass` object with example values. UI strings live in `src/localize.js`; add a language there to translate the card.
+`preview/index.html` simulates the `hass` object with example values.
+
+## Translations
+
+The card's texts live in `src/translations/<language>.json`. Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

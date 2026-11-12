@@ -1,11 +1,13 @@
 import { LitElement, html, css, nothing } from "lit";
 import {
   DEFAULT_COLORS,
+  resolveColors,
   DEFAULT_CHARGING_STATES,
   DEFAULT_POWER_LEVELS,
   fireEvent,
 } from "./const.js";
-import { localize } from "./localize.js";
+import { localize, LANGUAGES, TRANSLATIONS } from "./localize.js";
+import { SILHOUETTE_NAMES, DEFAULT_SILHOUETTE } from "./silhouettes.js";
 
 const COLOR_NAMES = ["0–20 %", "20–40 %", "40–60 %", "60–80 %", "80–100 %"];
 
@@ -23,7 +25,15 @@ const KNOWN_CHARGING_STATES = [
 const GENERAL_SCHEMA = [
   { name: "name", selector: { text: {} } },
   { name: "show_name", selector: { boolean: {} } },
+  { name: "show_plate", selector: { boolean: {} } },
+  { name: "silhouette", selector: { select: { mode: "dropdown", options: [] } } },
   { name: "image", selector: { text: {} } },
+  { name: "language", selector: { select: { mode: "dropdown", options: [] } } },
+];
+
+// ⚠️ NOT VERIFIED in HA 2026.11: device selector with an entity filter
+const DEVICE_SCHEMA = [
+  { name: "device", selector: { device: { entity: [{ domain: "sensor" }] } } },
 ];
 
 const ENTITY_SCHEMA = [
@@ -100,8 +110,11 @@ class CarInfoCardEditor extends LitElement {
   _commit(config) {
     const out = { ...config };
     // Do not write empty or default values to the config
-    for (const key of ["name", "image"]) if (isEmpty(out[key])) delete out[key];
+    for (const key of ["name", "image", "device"]) if (isEmpty(out[key])) delete out[key];
+    if (isEmpty(out.silhouette) || out.silhouette === DEFAULT_SILHOUETTE) delete out.silhouette;
+    if (isEmpty(out.language) || out.language === "auto") delete out.language;
     if (out.show_name === true) delete out.show_name;
+    if (out.show_plate === true) delete out.show_plate;
     const entities = {};
     for (const [k, v] of Object.entries(out.entities || {})) if (!isEmpty(v)) entities[k] = v;
     out.entities = entities;
@@ -112,7 +125,7 @@ class CarInfoCardEditor extends LitElement {
     if (!out.power_levels || sameArray(out.power_levels, DEFAULT_POWER_LEVELS)) {
       delete out.power_levels;
     }
-    if (!out.colors || sameArray(out.colors.map((c) => c.toLowerCase()), DEFAULT_COLORS)) {
+    if (!out.colors || sameArray(resolveColors(out.colors).map((c) => c.toLowerCase()), DEFAULT_COLORS)) {
       delete out.colors;
     }
     out.values = (out.values || []).map((v) => {
@@ -130,7 +143,18 @@ class CarInfoCardEditor extends LitElement {
   _generalChanged(ev) {
     ev.stopPropagation();
     const v = ev.detail.value;
-    this._commit({ ...this._config, name: v.name, show_name: v.show_name, image: v.image });
+    this._commit({ ...this._config, name: v.name,
+      show_name: v.show_name,
+      show_plate: v.show_plate,
+      silhouette: v.silhouette,
+      image: v.image,
+      language: v.language,
+    });
+  }
+
+  _deviceChanged(ev) {
+    ev.stopPropagation();
+    this._commit({ ...this._config, device: ev.detail.value.device });
   }
 
   _entitiesChanged(ev) {
@@ -181,7 +205,7 @@ class CarInfoCardEditor extends LitElement {
   }
 
   _colorChanged(index, ev) {
-    const colors = [...(this._config.colors || DEFAULT_COLORS)];
+    const colors = [...resolveColors(this._config.colors)];
     colors[index] = ev.target.value;
     this._commit({ ...this._config, colors });
   }
@@ -194,7 +218,7 @@ class CarInfoCardEditor extends LitElement {
   // ---------- Rendering ----------
 
   _t(key, vars) {
-    return localize(this.hass, key, vars);
+    return localize(this.hass, key, vars, this._config && this._config.language);
   }
 
   _label = (schema) => {
@@ -203,6 +227,44 @@ class CarInfoCardEditor extends LitElement {
   };
 
   _helper = (schema) => this._t(`helper.${schema.name}`);
+
+  // Entities of the selected device; undefined means "no filter"
+  _deviceEntities() {
+    const device = this._config.device;
+    if (!device || !this.hass || !this.hass.entities) return undefined;
+    const ids = Object.values(this.hass.entities)
+      .filter((e) => e.device_id === device)
+      .map((e) => e.entity_id);
+    return ids.length ? ids : undefined;
+  }
+
+  // Restricts the entity pickers of a schema to the selected device.
+  // Entities that are already configured stay selectable.
+  _filterSchema(schema, current = []) {
+    const ids = this._deviceEntities();
+    if (!ids) return schema;
+    const include = [...new Set([...ids, ...current.filter(Boolean)])];
+    return schema.map((s) =>
+      s.selector && s.selector.entity
+        ? { ...s, selector: { entity: { ...s.selector.entity, include_entities: include } } }
+        : s
+    );
+  }
+
+  _generalSchema() {
+    const options = SILHOUETTE_NAMES.map((n) => ({ value: n, label: this._t(`silhouette.${n}`) || n }));
+    const languages = [
+      { value: "auto", label: this._t("language.auto") },
+      ...LANGUAGES.map((l) => ({ value: l, label: TRANSLATIONS[l]["language.name"] })),
+    ];
+    return GENERAL_SCHEMA.map((s) =>
+      s.name === "silhouette"
+        ? { ...s, selector: { select: { mode: "dropdown", options } } }
+        : s.name === "language"
+        ? { ...s, selector: { select: { mode: "dropdown", options: languages } } }
+        : s
+    );
+  }
 
   _chargingSchema() {
     const stateObj =
@@ -248,23 +310,32 @@ class CarInfoCardEditor extends LitElement {
     if (!this._config || !this.hass) return nothing;
     const cfg = this._config;
     const levels = cfg.power_levels || DEFAULT_POWER_LEVELS;
-    const colors = cfg.colors || DEFAULT_COLORS;
+    const colors = resolveColors(cfg.colors);
     const valueSchema = VALUE_SCHEMA.map((s) => (s.name === "name" ? { ...s, _value: true } : s));
+    const entitySchema = this._filterSchema(ENTITY_SCHEMA, Object.values(cfg.entities));
     const half = Math.ceil(cfg.values.length / 2);
 
     return html`
       <div class="section">
         <h3>${this._t("editor.general")}</h3>
         ${this._form(
-          GENERAL_SCHEMA,
-          { name: cfg.name || "", show_name: cfg.show_name !== false, image: cfg.image || "" },
+          this._generalSchema(),
+          {
+            name: cfg.name || "",
+            show_name: cfg.show_name !== false,
+            show_plate: cfg.show_plate !== false,
+            silhouette: cfg.silhouette || DEFAULT_SILHOUETTE,
+            image: cfg.image || "",
+            language: cfg.language || "auto",
+          },
           this._generalChanged
         )}
       </div>
 
       <div class="section">
         <h3>${this._t("editor.entities")}</h3>
-        ${this._form(ENTITY_SCHEMA, cfg.entities, this._entitiesChanged)}
+        ${this._form(DEVICE_SCHEMA, { device: cfg.device || "" }, this._deviceChanged)}
+        ${this._form(entitySchema, cfg.entities, this._entitiesChanged)}
       </div>
 
       <div class="section">
@@ -297,13 +368,15 @@ class CarInfoCardEditor extends LitElement {
                 )}
                 ${this._iconButton(PATH_DELETE, this._t("editor.remove"), false, () => this._removeValue(i))}
               </div>
-              ${this._form(valueSchema, v, (ev) => this._valueChanged(i, ev))}
+              ${this._form(this._filterSchema(valueSchema, [v.entity]), v, (ev) =>
+                this._valueChanged(i, ev)
+              )}
             </div>
           `
         )}
         <div class="add">
           ${this._form(
-            [{ name: "entity", selector: { entity: {} } }],
+            this._filterSchema([{ name: "entity", selector: { entity: {} } }]),
             {},
             this._addValue
           )}
@@ -322,7 +395,7 @@ class CarInfoCardEditor extends LitElement {
                   .value=${/^#[0-9a-f]{6}$/i.test(c) ? c : "#000000"}
                   @change=${(ev) => this._colorChanged(i, ev)}
                 />
-                <span>${COLOR_NAMES[i]}</span>
+                <span>${COLOR_NAMES[i] || this._t("editor.full_color")}</span>
               </label>
             `
           )}

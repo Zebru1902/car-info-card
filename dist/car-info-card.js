@@ -1,31 +1,133 @@
-const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,i=Symbol(),s=new WeakMap;let r=class{constructor(t,e,s){if(this._$cssResult$=!0,s!==i)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e}get styleSheet(){let t=this.o;const i=this.t;if(e&&void 0===t){const e=void 0!==i&&1===i.length;e&&(t=s.get(i)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&s.set(i,t))}return t}toString(){return this.cssText}};const n=(t,...e)=>{const s=1===t.length?t[0]:e.reduce((e,i,s)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+t[s+1],t[0]);return new r(s,t,i)},o=e?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const i of t.cssRules)e+=i.cssText;return(t=>new r("string"==typeof t?t:t+"",void 0,i))(e)})(t):t,{is:a,defineProperty:l,getOwnPropertyDescriptor:c,getOwnPropertyNames:h,getOwnPropertySymbols:d,getPrototypeOf:p}=Object,g=globalThis,u=g.trustedTypes,_=u?u.emptyScript:"",m=g.reactiveElementPolyfillSupport,f=(t,e)=>t,v={toAttribute(t,e){switch(e){case Boolean:t=t?_:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t)}return t},fromAttribute(t,e){let i=t;switch(e){case Boolean:i=null!==t;break;case Number:i=null===t?null:Number(t);break;case Object:case Array:try{i=JSON.parse(t)}catch(t){i=null}}return i}},$=(t,e)=>!a(t,e),b={attribute:!0,type:String,converter:v,reflect:!1,useDefault:!1,hasChanged:$};Symbol.metadata??=Symbol("metadata"),g.litPropertyMetadata??=new WeakMap;let y=class extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,e=b){if(e.state&&(e.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(t)&&((e=Object.create(e)).wrapped=!0),this.elementProperties.set(t,e),!e.noAccessor){const i=Symbol(),s=this.getPropertyDescriptor(t,i,e);void 0!==s&&l(this.prototype,t,s)}}static getPropertyDescriptor(t,e,i){const{get:s,set:r}=c(this.prototype,t)??{get(){return this[e]},set(t){this[e]=t}};return{get:s,set(e){const n=s?.call(this);r?.call(this,e),this.requestUpdate(t,n,i)},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??b}static _$Ei(){if(this.hasOwnProperty(f("elementProperties")))return;const t=p(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties)}static finalize(){if(this.hasOwnProperty(f("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(f("properties"))){const t=this.properties,e=[...h(t),...d(t)];for(const i of e)this.createProperty(i,t[i])}const t=this[Symbol.metadata];if(null!==t){const e=litPropertyMetadata.get(t);if(void 0!==e)for(const[t,i]of e)this.elementProperties.set(t,i)}this._$Eh=new Map;for(const[t,e]of this.elementProperties){const i=this._$Eu(t,e);void 0!==i&&this._$Eh.set(i,t)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(t){const e=[];if(Array.isArray(t)){const i=new Set(t.flat(1/0).reverse());for(const t of i)e.unshift(o(t))}else void 0!==t&&e.push(o(t));return e}static _$Eu(t,e){const i=e.attribute;return!1===i?void 0:"string"==typeof i?i:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(t=>this.enableUpdating=t),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(t=>t(this))}addController(t){(this._$EO??=new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.()}removeController(t){this._$EO?.delete(t)}_$E_(){const t=new Map,e=this.constructor.elementProperties;for(const i of e.keys())this.hasOwnProperty(i)&&(t.set(i,this[i]),delete this[i]);t.size>0&&(this._$Ep=t)}createRenderRoot(){const i=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return((i,s)=>{if(e)i.adoptedStyleSheets=s.map(t=>t instanceof CSSStyleSheet?t:t.styleSheet);else for(const e of s){const s=document.createElement("style"),r=t.litNonce;void 0!==r&&s.setAttribute("nonce",r),s.textContent=e.cssText,i.appendChild(s)}})(i,this.constructor.elementStyles),i}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(t=>t.hostConnected?.())}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach(t=>t.hostDisconnected?.())}attributeChangedCallback(t,e,i){this._$AK(t,i)}_$ET(t,e){const i=this.constructor.elementProperties.get(t),s=this.constructor._$Eu(t,i);if(void 0!==s&&!0===i.reflect){const r=(void 0!==i.converter?.toAttribute?i.converter:v).toAttribute(e,i.type);this._$Em=t,null==r?this.removeAttribute(s):this.setAttribute(s,r),this._$Em=null}}_$AK(t,e){const i=this.constructor,s=i._$Eh.get(t);if(void 0!==s&&this._$Em!==s){const t=i.getPropertyOptions(s),r="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:v;this._$Em=s;const n=r.fromAttribute(e,t.type);this[s]=n??this._$Ej?.get(s)??n,this._$Em=null}}requestUpdate(t,e,i,s=!1,r){if(void 0!==t){const n=this.constructor;if(!1===s&&(r=this[t]),i??=n.getPropertyOptions(t),!((i.hasChanged??$)(r,e)||i.useDefault&&i.reflect&&r===this._$Ej?.get(t)&&!this.hasAttribute(n._$Eu(t,i))))return;this.C(t,e,i)}!1===this.isUpdatePending&&(this._$ES=this._$EP())}C(t,e,{useDefault:i,reflect:s,wrapped:r},n){i&&!(this._$Ej??=new Map).has(t)&&(this._$Ej.set(t,n??e??this[t]),!0!==r||void 0!==n)||(this._$AL.has(t)||(this.hasUpdated||i||(e=void 0),this._$AL.set(t,e)),!0===s&&this._$Em!==t&&(this._$Eq??=new Set).add(t))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,e]of this._$Ep)this[t]=e;this._$Ep=void 0}const t=this.constructor.elementProperties;if(t.size>0)for(const[e,i]of t){const{wrapped:t}=i,s=this[e];!0!==t||this._$AL.has(e)||void 0===s||this.C(e,void 0,i,s)}}let t=!1;const e=this._$AL;try{t=this.shouldUpdate(e),t?(this.willUpdate(e),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(e)):this._$EM()}catch(e){throw t=!1,this._$EM(),e}t&&this._$AE(e)}willUpdate(t){}_$AE(t){this._$EO?.forEach(t=>t.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return!0}update(t){this._$Eq&&=this._$Eq.forEach(t=>this._$ET(t,this[t])),this._$EM()}updated(t){}firstUpdated(t){}};y.elementStyles=[],y.shadowRootOptions={mode:"open"},y[f("elementProperties")]=new Map,y[f("finalized")]=new Map,m?.({ReactiveElement:y}),(g.reactiveElementVersions??=[]).push("2.1.2");const w=globalThis,x=t=>t,A=w.trustedTypes,E=A?A.createPolicy("lit-html",{createHTML:t=>t}):void 0,S="$lit$",C=`lit$${Math.random().toFixed(9).slice(2)}$`,L="?"+C,k=`<${L}>`,M=document,P=()=>M.createComment(""),O=t=>null===t||"object"!=typeof t&&"function"!=typeof t,H=Array.isArray,N="[ \t\n\f\r]",U=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,z=/-->/g,R=/>/g,T=RegExp(`>|${N}(?:([^\\s"'>=/]+)(${N}*=${N}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),B=/'/g,j=/"/g,I=/^(?:script|style|textarea|title)$/i,V=t=>(e,...i)=>({_$litType$:t,strings:e,values:i}),D=V(1),W=V(2),Z=Symbol.for("lit-noChange"),q=Symbol.for("lit-nothing"),K=new WeakMap,F=M.createTreeWalker(M,129);function Q(t,e){if(!H(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==E?E.createHTML(e):e}const G=(t,e)=>{const i=t.length-1,s=[];let r,n=2===e?"<svg>":3===e?"<math>":"",o=U;for(let e=0;e<i;e++){const i=t[e];let a,l,c=-1,h=0;for(;h<i.length&&(o.lastIndex=h,l=o.exec(i),null!==l);)h=o.lastIndex,o===U?"!--"===l[1]?o=z:void 0!==l[1]?o=R:void 0!==l[2]?(I.test(l[2])&&(r=RegExp("</"+l[2],"g")),o=T):void 0!==l[3]&&(o=T):o===T?">"===l[0]?(o=r??U,c=-1):void 0===l[1]?c=-2:(c=o.lastIndex-l[2].length,a=l[1],o=void 0===l[3]?T:'"'===l[3]?j:B):o===j||o===B?o=T:o===z||o===R?o=U:(o=T,r=void 0);const d=o===T&&t[e+1].startsWith("/>")?" ":"";n+=o===U?i+k:c>=0?(s.push(a),i.slice(0,c)+S+i.slice(c)+C+d):i+C+(-2===c?e:d)}return[Q(t,n+(t[i]||"<?>")+(2===e?"</svg>":3===e?"</math>":"")),s]};class J{constructor({strings:t,_$litType$:e},i){let s;this.parts=[];let r=0,n=0;const o=t.length-1,a=this.parts,[l,c]=G(t,e);if(this.el=J.createElement(l,i),F.currentNode=this.el.content,2===e||3===e){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes)}for(;null!==(s=F.nextNode())&&a.length<o;){if(1===s.nodeType){if(s.hasAttributes())for(const t of s.getAttributeNames())if(t.endsWith(S)){const e=c[n++],i=s.getAttribute(t).split(C),o=/([.?@])?(.*)/.exec(e);a.push({type:1,index:r,name:o[2],strings:i,ctor:"."===o[1]?it:"?"===o[1]?st:"@"===o[1]?rt:et}),s.removeAttribute(t)}else t.startsWith(C)&&(a.push({type:6,index:r}),s.removeAttribute(t));if(I.test(s.tagName)){const t=s.textContent.split(C),e=t.length-1;if(e>0){s.textContent=A?A.emptyScript:"";for(let i=0;i<e;i++)s.append(t[i],P()),F.nextNode(),a.push({type:2,index:++r});s.append(t[e],P())}}}else if(8===s.nodeType)if(s.data===L)a.push({type:2,index:r});else{let t=-1;for(;-1!==(t=s.data.indexOf(C,t+1));)a.push({type:7,index:r}),t+=C.length-1}r++}}static createElement(t,e){const i=M.createElement("template");return i.innerHTML=t,i}}function X(t,e,i=t,s){if(e===Z)return e;let r=void 0!==s?i._$Co?.[s]:i._$Cl;const n=O(e)?void 0:e._$litDirective$;return r?.constructor!==n&&(r?._$AO?.(!1),void 0===n?r=void 0:(r=new n(t),r._$AT(t,i,s)),void 0!==s?(i._$Co??=[])[s]=r:i._$Cl=r),void 0!==r&&(e=X(t,r._$AS(t,e.values),r,s)),e}class Y{constructor(t,e){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:e},parts:i}=this._$AD,s=(t?.creationScope??M).importNode(e,!0);F.currentNode=s;let r=F.nextNode(),n=0,o=0,a=i[0];for(;void 0!==a;){if(n===a.index){let e;2===a.type?e=new tt(r,r.nextSibling,this,t):1===a.type?e=new a.ctor(r,a.name,a.strings,this,t):6===a.type&&(e=new nt(r,this,t)),this._$AV.push(e),a=i[++o]}n!==a?.index&&(r=F.nextNode(),n++)}return F.currentNode=M,s}p(t){let e=0;for(const i of this._$AV)void 0!==i&&(void 0!==i.strings?(i._$AI(t,i,e),e+=i.strings.length-2):i._$AI(t[e])),e++}}class tt{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,e,i,s){this.type=2,this._$AH=q,this._$AN=void 0,this._$AA=t,this._$AB=e,this._$AM=i,this.options=s,this._$Cv=s?.isConnected??!0}get parentNode(){let t=this._$AA.parentNode;const e=this._$AM;return void 0!==e&&11===t?.nodeType&&(t=e.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,e=this){t=X(this,t,e),O(t)?t===q||null==t||""===t?(this._$AH!==q&&this._$AR(),this._$AH=q):t!==this._$AH&&t!==Z&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):(t=>H(t)||"function"==typeof t?.[Symbol.iterator])(t)?this.k(t):this._(t)}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t))}_(t){this._$AH!==q&&O(this._$AH)?this._$AA.nextSibling.data=t:this.T(M.createTextNode(t)),this._$AH=t}$(t){const{values:e,_$litType$:i}=t,s="number"==typeof i?this._$AC(t):(void 0===i.el&&(i.el=J.createElement(Q(i.h,i.h[0]),this.options)),i);if(this._$AH?._$AD===s)this._$AH.p(e);else{const t=new Y(s,this),i=t.u(this.options);t.p(e),this.T(i),this._$AH=t}}_$AC(t){let e=K.get(t.strings);return void 0===e&&K.set(t.strings,e=new J(t)),e}k(t){H(this._$AH)||(this._$AH=[],this._$AR());const e=this._$AH;let i,s=0;for(const r of t)s===e.length?e.push(i=new tt(this.O(P()),this.O(P()),this,this.options)):i=e[s],i._$AI(r),s++;s<e.length&&(this._$AR(i&&i._$AB.nextSibling,s),e.length=s)}_$AR(t=this._$AA.nextSibling,e){for(this._$AP?.(!1,!0,e);t!==this._$AB;){const e=x(t).nextSibling;x(t).remove(),t=e}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t))}}class et{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,e,i,s,r){this.type=1,this._$AH=q,this._$AN=void 0,this.element=t,this.name=e,this._$AM=s,this.options=r,i.length>2||""!==i[0]||""!==i[1]?(this._$AH=Array(i.length-1).fill(new String),this.strings=i):this._$AH=q}_$AI(t,e=this,i,s){const r=this.strings;let n=!1;if(void 0===r)t=X(this,t,e,0),n=!O(t)||t!==this._$AH&&t!==Z,n&&(this._$AH=t);else{const s=t;let o,a;for(t=r[0],o=0;o<r.length-1;o++)a=X(this,s[i+o],e,o),a===Z&&(a=this._$AH[o]),n||=!O(a)||a!==this._$AH[o],a===q?t=q:t!==q&&(t+=(a??"")+r[o+1]),this._$AH[o]=a}n&&!s&&this.j(t)}j(t){t===q?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"")}}class it extends et{constructor(){super(...arguments),this.type=3}j(t){this.element[this.name]=t===q?void 0:t}}class st extends et{constructor(){super(...arguments),this.type=4}j(t){this.element.toggleAttribute(this.name,!!t&&t!==q)}}class rt extends et{constructor(t,e,i,s,r){super(t,e,i,s,r),this.type=5}_$AI(t,e=this){if((t=X(this,t,e,0)??q)===Z)return;const i=this._$AH,s=t===q&&i!==q||t.capture!==i.capture||t.once!==i.once||t.passive!==i.passive,r=t!==q&&(i===q||s);s&&this.element.removeEventListener(this.name,this,i),r&&this.element.addEventListener(this.name,this,t),this._$AH=t}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t)}}class nt{constructor(t,e,i){this.element=t,this.type=6,this._$AN=void 0,this._$AM=e,this.options=i}get _$AU(){return this._$AM._$AU}_$AI(t){X(this,t)}}const ot=w.litHtmlPolyfillSupport;ot?.(J,tt),(w.litHtmlVersions??=[]).push("3.3.3");const at=globalThis;class lt extends y{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=((t,e,i)=>{const s=i?.renderBefore??e;let r=s._$litPart$;if(void 0===r){const t=i?.renderBefore??null;s._$litPart$=r=new tt(e.insertBefore(P(),t),t,void 0,i??{})}return r._$AI(t),r})(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return Z}}lt._$litElement$=!0,lt.finalized=!0,at.litElementHydrateSupport?.({LitElement:lt});const ct=at.litElementPolyfillSupport;ct?.({LitElement:lt}),(at.litElementVersions??=[]).push("4.2.2");const ht=["#d32f2f","#f57c00","#fbc02d","#8bc34a","#2e7d32"],dt=["charging"],pt=[3.7,11,50],gt=(t,e,i)=>{t.dispatchEvent(new CustomEvent(e,{detail:i,bubbles:!0,composed:!0}))},ut={en:{"card.description":"Electric car card with a 5-segment battery, charging bolt and configurable values.","card.hint":"Please select the battery level entity (entities.battery) in the editor.","card.not_found":"not found","card.soc_unknown":"Battery level unknown","card.soc":"Battery level {soc} %","card.charging":"charging","editor.general":"General","editor.entities":"Entities","editor.charging":"Charging","editor.charging_note":"The bolt is green while the car is charging. Its pulse and glow get stronger with higher charging power (4 levels).","editor.values":"Values around the car","editor.values_note":"The first half is shown on the left, the second half on the right.","editor.left":"left","editor.right":"right","editor.move_up":"Move up","editor.move_down":"Move down","editor.remove":"Remove","editor.add_note":"Select an entity to add a value.","editor.colors":"Battery segment colors","editor.reset_colors":"Default colors","label.name":"Name","label.show_name":"Show header (name, licence plate)","label.image":"Custom image (URL, e.g. /local/car.png)","label.battery":"Battery level (required)","label.charging_power":"Charging power","label.charging_state":"Charging state","label.plate":"Licence plate","label.charging_states":"States that count as charging","label.power_1":"Level 1 up to","label.power_2":"Level 2 up to","label.power_3":"Level 3 up to (level 4 above)","label.entity":"Entity","label.value_name":"Label (empty = entity name)","label.icon":"Icon (empty = entity icon)","helper.image":"Leave empty for the built-in silhouette.","helper.charging_state":"Without a charging state, the car counts as charging while the charging power is above 0.","helper.charging_states":"Default: charging"},de:{"card.description":"Auto-Karte mit Batterie in 5 Segmenten, Lade-Blitz und frei wählbaren Werten.","card.hint":"Bitte im Editor die Entität für den Ladestand (entities.battery) wählen.","card.not_found":"nicht gefunden","card.soc_unknown":"Ladestand unbekannt","card.soc":"Ladestand {soc} %","card.charging":"lädt","editor.general":"Allgemein","editor.entities":"Entitäten","editor.charging":"Laden","editor.charging_note":"Der Blitz ist grün, solange das Auto lädt. Puls und Leuchten werden mit steigender Ladeleistung stärker (4 Stufen).","editor.values":"Werte rund um das Auto","editor.values_note":"Die erste Hälfte steht links, die zweite rechts.","editor.left":"links","editor.right":"rechts","editor.move_up":"Nach oben","editor.move_down":"Nach unten","editor.remove":"Entfernen","editor.add_note":"Entität wählen, um einen Wert hinzuzufügen.","editor.colors":"Farben der Batteriesegmente","editor.reset_colors":"Standardfarben","label.name":"Name","label.show_name":"Kopfzeile anzeigen (Name, Kennzeichen)","label.image":"Eigenes Bild (URL, z. B. /local/auto.png)","label.battery":"Ladestand (Pflicht)","label.charging_power":"Ladeleistung","label.charging_state":"Ladezustand","label.plate":"Kennzeichen","label.charging_states":"Zustände, die als Laden gelten","label.power_1":"Stufe 1 bis","label.power_2":"Stufe 2 bis","label.power_3":"Stufe 3 bis (darüber Stufe 4)","label.entity":"Entität","label.value_name":"Bezeichnung (leer = Name der Entität)","label.icon":"Symbol (leer = Symbol der Entität)","helper.image":"Leer lassen für die eingebaute Silhouette.","helper.charging_state":"Ohne Ladezustand gilt das Auto als ladend, sobald die Ladeleistung über 0 liegt.","helper.charging_states":"Standard: charging"}};function _t(t,e,i={}){const s=ut[(t=>{const e=t&&(t.locale&&t.locale.language||t.language)||"en";return String(e).split("-")[0].toLowerCase()})(t)]||ut.en;let r=s[e]??ut.en[e];if(void 0!==r){for(const[t,e]of Object.entries(i))r=r.replace(`{${t}}`,e);return r}}const mt=["0–20 %","20–40 %","40–60 %","60–80 %","80–100 %"],ft=["charging","connect_cable","ready_for_charging","conserving","discharging","charging_interrupted"],vt=[{name:"name",selector:{text:{}}},{name:"show_name",selector:{boolean:{}}},{name:"image",selector:{text:{}}}],$t=[{name:"battery",required:!0,selector:{entity:{filter:{domain:"sensor"}}}},{name:"charging_power",selector:{entity:{filter:{domain:"sensor"}}}},{name:"charging_state",selector:{entity:{filter:{domain:"sensor"}}}},{name:"plate",selector:{entity:{}}}],bt=t=>({name:t,selector:{number:{min:0,max:1e3,step:.1,mode:"box",unit_of_measurement:"kW"}}}),yt=[{name:"entity",required:!0,selector:{entity:{}}},{name:"name",selector:{text:{}}},{name:"icon",selector:{icon:{}}}],wt=(t,e)=>Array.isArray(t)&&Array.isArray(e)&&t.length===e.length&&t.every((t,i)=>t===e[i]),xt=t=>null==t||""===t;class At extends lt{static get properties(){return{hass:{attribute:!1},_config:{state:!0}}}connectedCallback(){super.connectedCallback(),async function(){if((!customElements.get("ha-form")||!customElements.get("ha-entity-picker"))&&window.loadCardHelpers)try{const t=await window.loadCardHelpers(),e=await t.createCardElement({type:"entities",entities:[]});e&&e.constructor.getConfigElement&&await e.constructor.getConfigElement()}catch(t){}}().then(()=>this.requestUpdate())}setConfig(t){this._config={...t,entities:{...t.entities||{}},values:(t.values||[]).map(t=>"string"==typeof t?{entity:t}:{...t})}}_commit(t){const e={...t};for(const t of["name","image"])xt(e[t])&&delete e[t];!0===e.show_name&&delete e.show_name;const i={};for(const[t,s]of Object.entries(e.entities||{}))xt(s)||(i[t]=s);e.entities=i,e.charging_states&&e.charging_states.length&&!wt(e.charging_states,dt)||delete e.charging_states,e.power_levels&&!wt(e.power_levels,pt)||delete e.power_levels,e.colors&&!wt(e.colors.map(t=>t.toLowerCase()),ht)||delete e.colors,e.values=(e.values||[]).map(t=>{const e={entity:t.entity};return xt(t.name)||(e.name=t.name),xt(t.icon)||(e.icon=t.icon),e}),e.values.length||delete e.values,this._config={...t},gt(this,"config-changed",{config:e})}_generalChanged(t){t.stopPropagation();const e=t.detail.value;this._commit({...this._config,name:e.name,show_name:e.show_name,image:e.image})}_entitiesChanged(t){t.stopPropagation(),this._commit({...this._config,entities:{...t.detail.value}})}_chargingChanged(t){t.stopPropagation();const e=t.detail.value,i=[e.power_1,e.power_2,e.power_3].map((t,e)=>Number.isFinite(Number(t))&&!xt(t)?Number(t):pt[e]);this._commit({...this._config,charging_states:e.charging_states||[],power_levels:i})}_valueChanged(t,e){e.stopPropagation();const i=[...this._config.values];i[t]={...e.detail.value},this._commit({...this._config,values:i})}_moveValue(t,e){const i=[...this._config.values],s=t+e;s<0||s>=i.length||([i[t],i[s]]=[i[s],i[t]],this._commit({...this._config,values:i}))}_removeValue(t){const e=this._config.values.filter((e,i)=>i!==t);this._commit({...this._config,values:e})}_addValue(t){t.stopPropagation();const e=t.detail.value&&t.detail.value.entity;e&&(this._commit({...this._config,values:[...this._config.values,{entity:e}]}),t.target.data={})}_colorChanged(t,e){const i=[...this._config.colors||ht];i[t]=e.target.value,this._commit({...this._config,colors:i})}_resetColors(){const{colors:t,...e}=this._config;this._commit(e)}_t(t,e){return _t(this.hass,t,e)}_label=t=>"name"===t.name&&t._value?this._t("label.value_name"):this._t(`label.${t.name}`)||t.name;_helper=t=>this._t(`helper.${t.name}`);_chargingSchema(){const t=this.hass&&this._config.entities.charging_state?this.hass.states[this._config.entities.charging_state]:void 0,e=t&&Array.isArray(t.attributes.options)?t.attributes.options:[],i=this._config.charging_states||dt;return[{name:"charging_states",selector:{select:{multiple:!0,custom_value:!0,mode:"list",options:[...new Set([...e,...ft,...i])].map(t=>({value:t,label:t}))}}},{type:"grid",name:"",schema:[bt("power_1"),bt("power_2"),bt("power_3")]}]}_form(t,e,i){return D`<ha-form
+const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,i=Symbol(),s=new WeakMap;let a=class{constructor(t,e,s){if(this._$cssResult$=!0,s!==i)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e}get styleSheet(){let t=this.o;const i=this.t;if(e&&void 0===t){const e=void 0!==i&&1===i.length;e&&(t=s.get(i)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&s.set(i,t))}return t}toString(){return this.cssText}};const r=(t,...e)=>{const s=1===t.length?t[0]:e.reduce((e,i,s)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+t[s+1],t[0]);return new a(s,t,i)},o=e?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const i of t.cssRules)e+=i.cssText;return(t=>new a("string"==typeof t?t:t+"",void 0,i))(e)})(t):t,{is:n,defineProperty:l,getOwnPropertyDescriptor:c,getOwnPropertyNames:h,getOwnPropertySymbols:d,getPrototypeOf:g}=Object,p=globalThis,u=p.trustedTypes,m=u?u.emptyScript:"",_=p.reactiveElementPolyfillSupport,f=(t,e)=>t,v={toAttribute(t,e){switch(e){case Boolean:t=t?m:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t)}return t},fromAttribute(t,e){let i=t;switch(e){case Boolean:i=null!==t;break;case Number:i=null===t?null:Number(t);break;case Object:case Array:try{i=JSON.parse(t)}catch(t){i=null}}return i}},y=(t,e)=>!n(t,e),b={attribute:!0,type:String,converter:v,reflect:!1,useDefault:!1,hasChanged:y};Symbol.metadata??=Symbol("metadata"),p.litPropertyMetadata??=new WeakMap;let $=class extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,e=b){if(e.state&&(e.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(t)&&((e=Object.create(e)).wrapped=!0),this.elementProperties.set(t,e),!e.noAccessor){const i=Symbol(),s=this.getPropertyDescriptor(t,i,e);void 0!==s&&l(this.prototype,t,s)}}static getPropertyDescriptor(t,e,i){const{get:s,set:a}=c(this.prototype,t)??{get(){return this[e]},set(t){this[e]=t}};return{get:s,set(e){const r=s?.call(this);a?.call(this,e),this.requestUpdate(t,r,i)},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??b}static _$Ei(){if(this.hasOwnProperty(f("elementProperties")))return;const t=g(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties)}static finalize(){if(this.hasOwnProperty(f("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(f("properties"))){const t=this.properties,e=[...h(t),...d(t)];for(const i of e)this.createProperty(i,t[i])}const t=this[Symbol.metadata];if(null!==t){const e=litPropertyMetadata.get(t);if(void 0!==e)for(const[t,i]of e)this.elementProperties.set(t,i)}this._$Eh=new Map;for(const[t,e]of this.elementProperties){const i=this._$Eu(t,e);void 0!==i&&this._$Eh.set(i,t)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(t){const e=[];if(Array.isArray(t)){const i=new Set(t.flat(1/0).reverse());for(const t of i)e.unshift(o(t))}else void 0!==t&&e.push(o(t));return e}static _$Eu(t,e){const i=e.attribute;return!1===i?void 0:"string"==typeof i?i:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(t=>this.enableUpdating=t),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(t=>t(this))}addController(t){(this._$EO??=new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.()}removeController(t){this._$EO?.delete(t)}_$E_(){const t=new Map,e=this.constructor.elementProperties;for(const i of e.keys())this.hasOwnProperty(i)&&(t.set(i,this[i]),delete this[i]);t.size>0&&(this._$Ep=t)}createRenderRoot(){const i=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return((i,s)=>{if(e)i.adoptedStyleSheets=s.map(t=>t instanceof CSSStyleSheet?t:t.styleSheet);else for(const e of s){const s=document.createElement("style"),a=t.litNonce;void 0!==a&&s.setAttribute("nonce",a),s.textContent=e.cssText,i.appendChild(s)}})(i,this.constructor.elementStyles),i}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(t=>t.hostConnected?.())}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach(t=>t.hostDisconnected?.())}attributeChangedCallback(t,e,i){this._$AK(t,i)}_$ET(t,e){const i=this.constructor.elementProperties.get(t),s=this.constructor._$Eu(t,i);if(void 0!==s&&!0===i.reflect){const a=(void 0!==i.converter?.toAttribute?i.converter:v).toAttribute(e,i.type);this._$Em=t,null==a?this.removeAttribute(s):this.setAttribute(s,a),this._$Em=null}}_$AK(t,e){const i=this.constructor,s=i._$Eh.get(t);if(void 0!==s&&this._$Em!==s){const t=i.getPropertyOptions(s),a="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:v;this._$Em=s;const r=a.fromAttribute(e,t.type);this[s]=r??this._$Ej?.get(s)??r,this._$Em=null}}requestUpdate(t,e,i,s=!1,a){if(void 0!==t){const r=this.constructor;if(!1===s&&(a=this[t]),i??=r.getPropertyOptions(t),!((i.hasChanged??y)(a,e)||i.useDefault&&i.reflect&&a===this._$Ej?.get(t)&&!this.hasAttribute(r._$Eu(t,i))))return;this.C(t,e,i)}!1===this.isUpdatePending&&(this._$ES=this._$EP())}C(t,e,{useDefault:i,reflect:s,wrapped:a},r){i&&!(this._$Ej??=new Map).has(t)&&(this._$Ej.set(t,r??e??this[t]),!0!==a||void 0!==r)||(this._$AL.has(t)||(this.hasUpdated||i||(e=void 0),this._$AL.set(t,e)),!0===s&&this._$Em!==t&&(this._$Eq??=new Set).add(t))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,e]of this._$Ep)this[t]=e;this._$Ep=void 0}const t=this.constructor.elementProperties;if(t.size>0)for(const[e,i]of t){const{wrapped:t}=i,s=this[e];!0!==t||this._$AL.has(e)||void 0===s||this.C(e,void 0,i,s)}}let t=!1;const e=this._$AL;try{t=this.shouldUpdate(e),t?(this.willUpdate(e),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(e)):this._$EM()}catch(e){throw t=!1,this._$EM(),e}t&&this._$AE(e)}willUpdate(t){}_$AE(t){this._$EO?.forEach(t=>t.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return!0}update(t){this._$Eq&&=this._$Eq.forEach(t=>this._$ET(t,this[t])),this._$EM()}updated(t){}firstUpdated(t){}};$.elementStyles=[],$.shadowRootOptions={mode:"open"},$[f("elementProperties")]=new Map,$[f("finalized")]=new Map,_?.({ReactiveElement:$}),(p.reactiveElementVersions??=[]).push("2.1.2");const w=globalThis,x=t=>t,A=w.trustedTypes,E=A?A.createPolicy("lit-html",{createHTML:t=>t}):void 0,S="$lit$",C=`lit$${Math.random().toFixed(9).slice(2)}$`,L="?"+C,H=`<${L}>`,M=document,k=()=>M.createComment(""),O=t=>null===t||"object"!=typeof t&&"function"!=typeof t,P=Array.isArray,V="[ \t\n\f\r]",Q=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,z=/-->/g,U=/>/g,N=RegExp(`>|${V}(?:([^\\s"'>=/]+)(${V}*=${V}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),T=/'/g,j=/"/g,Z=/^(?:script|style|textarea|title)$/i,B=t=>(e,...i)=>({_$litType$:t,strings:e,values:i}),R=B(1),D=B(2),I=Symbol.for("lit-noChange"),W=Symbol.for("lit-nothing"),F=new WeakMap,q=M.createTreeWalker(M,129);function K(t,e){if(!P(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==E?E.createHTML(e):e}const G=(t,e)=>{const i=t.length-1,s=[];let a,r=2===e?"<svg>":3===e?"<math>":"",o=Q;for(let e=0;e<i;e++){const i=t[e];let n,l,c=-1,h=0;for(;h<i.length&&(o.lastIndex=h,l=o.exec(i),null!==l);)h=o.lastIndex,o===Q?"!--"===l[1]?o=z:void 0!==l[1]?o=U:void 0!==l[2]?(Z.test(l[2])&&(a=RegExp("</"+l[2],"g")),o=N):void 0!==l[3]&&(o=N):o===N?">"===l[0]?(o=a??Q,c=-1):void 0===l[1]?c=-2:(c=o.lastIndex-l[2].length,n=l[1],o=void 0===l[3]?N:'"'===l[3]?j:T):o===j||o===T?o=N:o===z||o===U?o=Q:(o=N,a=void 0);const d=o===N&&t[e+1].startsWith("/>")?" ":"";r+=o===Q?i+H:c>=0?(s.push(n),i.slice(0,c)+S+i.slice(c)+C+d):i+C+(-2===c?e:d)}return[K(t,r+(t[i]||"<?>")+(2===e?"</svg>":3===e?"</math>":"")),s]};class J{constructor({strings:t,_$litType$:e},i){let s;this.parts=[];let a=0,r=0;const o=t.length-1,n=this.parts,[l,c]=G(t,e);if(this.el=J.createElement(l,i),q.currentNode=this.el.content,2===e||3===e){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes)}for(;null!==(s=q.nextNode())&&n.length<o;){if(1===s.nodeType){if(s.hasAttributes())for(const t of s.getAttributeNames())if(t.endsWith(S)){const e=c[r++],i=s.getAttribute(t).split(C),o=/([.?@])?(.*)/.exec(e);n.push({type:1,index:a,name:o[2],strings:i,ctor:"."===o[1]?it:"?"===o[1]?st:"@"===o[1]?at:et}),s.removeAttribute(t)}else t.startsWith(C)&&(n.push({type:6,index:a}),s.removeAttribute(t));if(Z.test(s.tagName)){const t=s.textContent.split(C),e=t.length-1;if(e>0){s.textContent=A?A.emptyScript:"";for(let i=0;i<e;i++)s.append(t[i],k()),q.nextNode(),n.push({type:2,index:++a});s.append(t[e],k())}}}else if(8===s.nodeType)if(s.data===L)n.push({type:2,index:a});else{let t=-1;for(;-1!==(t=s.data.indexOf(C,t+1));)n.push({type:7,index:a}),t+=C.length-1}a++}}static createElement(t,e){const i=M.createElement("template");return i.innerHTML=t,i}}function X(t,e,i=t,s){if(e===I)return e;let a=void 0!==s?i._$Co?.[s]:i._$Cl;const r=O(e)?void 0:e._$litDirective$;return a?.constructor!==r&&(a?._$AO?.(!1),void 0===r?a=void 0:(a=new r(t),a._$AT(t,i,s)),void 0!==s?(i._$Co??=[])[s]=a:i._$Cl=a),void 0!==a&&(e=X(t,a._$AS(t,e.values),a,s)),e}class Y{constructor(t,e){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:e},parts:i}=this._$AD,s=(t?.creationScope??M).importNode(e,!0);q.currentNode=s;let a=q.nextNode(),r=0,o=0,n=i[0];for(;void 0!==n;){if(r===n.index){let e;2===n.type?e=new tt(a,a.nextSibling,this,t):1===n.type?e=new n.ctor(a,n.name,n.strings,this,t):6===n.type&&(e=new rt(a,this,t)),this._$AV.push(e),n=i[++o]}r!==n?.index&&(a=q.nextNode(),r++)}return q.currentNode=M,s}p(t){let e=0;for(const i of this._$AV)void 0!==i&&(void 0!==i.strings?(i._$AI(t,i,e),e+=i.strings.length-2):i._$AI(t[e])),e++}}class tt{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,e,i,s){this.type=2,this._$AH=W,this._$AN=void 0,this._$AA=t,this._$AB=e,this._$AM=i,this.options=s,this._$Cv=s?.isConnected??!0}get parentNode(){let t=this._$AA.parentNode;const e=this._$AM;return void 0!==e&&11===t?.nodeType&&(t=e.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,e=this){t=X(this,t,e),O(t)?t===W||null==t||""===t?(this._$AH!==W&&this._$AR(),this._$AH=W):t!==this._$AH&&t!==I&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):(t=>P(t)||"function"==typeof t?.[Symbol.iterator])(t)?this.k(t):this._(t)}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t))}_(t){this._$AH!==W&&O(this._$AH)?this._$AA.nextSibling.data=t:this.T(M.createTextNode(t)),this._$AH=t}$(t){const{values:e,_$litType$:i}=t,s="number"==typeof i?this._$AC(t):(void 0===i.el&&(i.el=J.createElement(K(i.h,i.h[0]),this.options)),i);if(this._$AH?._$AD===s)this._$AH.p(e);else{const t=new Y(s,this),i=t.u(this.options);t.p(e),this.T(i),this._$AH=t}}_$AC(t){let e=F.get(t.strings);return void 0===e&&F.set(t.strings,e=new J(t)),e}k(t){P(this._$AH)||(this._$AH=[],this._$AR());const e=this._$AH;let i,s=0;for(const a of t)s===e.length?e.push(i=new tt(this.O(k()),this.O(k()),this,this.options)):i=e[s],i._$AI(a),s++;s<e.length&&(this._$AR(i&&i._$AB.nextSibling,s),e.length=s)}_$AR(t=this._$AA.nextSibling,e){for(this._$AP?.(!1,!0,e);t!==this._$AB;){const e=x(t).nextSibling;x(t).remove(),t=e}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t))}}class et{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,e,i,s,a){this.type=1,this._$AH=W,this._$AN=void 0,this.element=t,this.name=e,this._$AM=s,this.options=a,i.length>2||""!==i[0]||""!==i[1]?(this._$AH=Array(i.length-1).fill(new String),this.strings=i):this._$AH=W}_$AI(t,e=this,i,s){const a=this.strings;let r=!1;if(void 0===a)t=X(this,t,e,0),r=!O(t)||t!==this._$AH&&t!==I,r&&(this._$AH=t);else{const s=t;let o,n;for(t=a[0],o=0;o<a.length-1;o++)n=X(this,s[i+o],e,o),n===I&&(n=this._$AH[o]),r||=!O(n)||n!==this._$AH[o],n===W?t=W:t!==W&&(t+=(n??"")+a[o+1]),this._$AH[o]=n}r&&!s&&this.j(t)}j(t){t===W?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"")}}class it extends et{constructor(){super(...arguments),this.type=3}j(t){this.element[this.name]=t===W?void 0:t}}class st extends et{constructor(){super(...arguments),this.type=4}j(t){this.element.toggleAttribute(this.name,!!t&&t!==W)}}class at extends et{constructor(t,e,i,s,a){super(t,e,i,s,a),this.type=5}_$AI(t,e=this){if((t=X(this,t,e,0)??W)===I)return;const i=this._$AH,s=t===W&&i!==W||t.capture!==i.capture||t.once!==i.once||t.passive!==i.passive,a=t!==W&&(i===W||s);s&&this.element.removeEventListener(this.name,this,i),a&&this.element.addEventListener(this.name,this,t),this._$AH=t}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t)}}class rt{constructor(t,e,i){this.element=t,this.type=6,this._$AN=void 0,this._$AM=e,this.options=i}get _$AU(){return this._$AM._$AU}_$AI(t){X(this,t)}}const ot=w.litHtmlPolyfillSupport;ot?.(J,tt),(w.litHtmlVersions??=[]).push("3.3.3");const nt=globalThis;class lt extends ${constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=((t,e,i)=>{const s=i?.renderBefore??e;let a=s._$litPart$;if(void 0===a){const t=i?.renderBefore??null;s._$litPart$=a=new tt(e.insertBefore(k(),t),t,void 0,i??{})}return a._$AI(t),a})(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return I}}lt._$litElement$=!0,lt.finalized=!0,nt.litElementHydrateSupport?.({LitElement:lt});const ct=nt.litElementPolyfillSupport;ct?.({LitElement:lt}),(nt.litElementVersions??=[]).push("4.2.2");const ht=["#d32f2f","#f57c00","#fbc02d","#c0ca33","#7cb342","#2e7d32"],dt=t=>Array.isArray(t)?5===t.length?[...t,ht[5]]:t:ht,gt=["charging"],pt=[3.7,11,50],ut=(t,e,i)=>{t.dispatchEvent(new CustomEvent(e,{detail:i,bubbles:!0,composed:!0}))};var mt={"card.charging":"charging","card.description":"Electric car card with a 5-segment battery, charging bolt and configurable values.","card.hint":"Please select the battery level entity (entities.battery) in the editor.","card.not_found":"not found","card.soc":"Battery level {soc} %","card.soc_unknown":"Battery level unknown","editor.add_note":"Select an entity to add a value.","editor.charging":"Charging","editor.charging_note":"The bolt is green while the car is charging. Its pulse and glow get stronger with higher charging power (4 levels).","editor.colors":"Battery segment colors","editor.entities":"Entities","editor.full_color":"Full (100 %)","editor.general":"General","editor.left":"left","editor.move_down":"Move down","editor.move_up":"Move up","editor.remove":"Remove","editor.reset_colors":"Default colors","editor.right":"right","editor.values":"Values around the car","editor.values_note":"The first half is shown on the left, the second half on the right.","helper.charging_state":"Without a charging state, the car counts as charging while the charging power is above 0.","helper.charging_states":"Default: charging","helper.device":"Only shows the entities of this device in the pickers below.","helper.image":"Leave empty to use the vehicle selected above.","helper.language":"Language of the card and editor texts. Values are always formatted by Home Assistant.","helper.silhouette":"Built-in drawing. A custom image below replaces it.","label.battery":"Battery level (required)","label.charging_power":"Charging power","label.charging_state":"Charging state","label.charging_states":"States that count as charging","label.device":"Device (optional)","label.entity":"Entity","label.icon":"Icon (empty = entity icon)","label.image":"Custom image (URL, e.g. /local/car.png)","label.language":"Language","label.name":"Name","label.plate":"Licence plate","label.power_1":"Level 1 up to","label.power_2":"Level 2 up to","label.power_3":"Level 3 up to (level 4 above)","label.show_name":"Show name","label.show_plate":"Show licence plate","label.silhouette":"Vehicle","label.value_name":"Label (empty = entity name)","language.auto":"Automatic (Home Assistant language)","language.name":"English","silhouette.hatchback":"Hatchback","silhouette.race":"Formula race car","silhouette.sedan":"Sedan","silhouette.suv":"SUV","silhouette.tractor":"Tractor","silhouette.van":"Van","silhouette.vintage":"Vintage car"};const _t={en:mt,de:{"card.charging":"lädt","card.description":"Auto-Karte mit Batterie in 5 Segmenten, Lade-Blitz und frei wählbaren Werten.","card.hint":"Bitte im Editor die Entität für den Ladestand (entities.battery) wählen.","card.not_found":"nicht gefunden","card.soc":"Ladestand {soc} %","card.soc_unknown":"Ladestand unbekannt","editor.add_note":"Entität wählen, um einen Wert hinzuzufügen.","editor.charging":"Laden","editor.charging_note":"Der Blitz ist grün, solange das Auto lädt. Puls und Leuchten werden mit steigender Ladeleistung stärker (4 Stufen).","editor.colors":"Farben der Batteriesegmente","editor.entities":"Entitäten","editor.full_color":"Voll (100 %)","editor.general":"Allgemein","editor.left":"links","editor.move_down":"Nach unten","editor.move_up":"Nach oben","editor.remove":"Entfernen","editor.reset_colors":"Standardfarben","editor.right":"rechts","editor.values":"Werte rund um das Auto","editor.values_note":"Die erste Hälfte steht links, die zweite rechts.","helper.charging_state":"Ohne Ladezustand gilt das Auto als ladend, sobald die Ladeleistung über 0 liegt.","helper.charging_states":"Standard: charging","helper.device":"Zeigt in den Auswahlfeldern unten nur die Entitäten dieses Geräts.","helper.image":"Leer lassen, um das oben gewählte Fahrzeug zu zeigen.","helper.language":"Sprache der Texte von Karte und Editor. Werte formatiert immer Home Assistant.","helper.silhouette":"Eingebaute Zeichnung. Ein eigenes Bild darunter ersetzt sie.","label.battery":"Ladestand (Pflicht)","label.charging_power":"Ladeleistung","label.charging_state":"Ladezustand","label.charging_states":"Zustände, die als Laden gelten","label.device":"Gerät (optional)","label.entity":"Entität","label.icon":"Symbol (leer = Symbol der Entität)","label.image":"Eigenes Bild (URL, z. B. /local/auto.png)","label.language":"Sprache","label.name":"Name","label.plate":"Kennzeichen","label.power_1":"Stufe 1 bis","label.power_2":"Stufe 2 bis","label.power_3":"Stufe 3 bis (darüber Stufe 4)","label.show_name":"Name anzeigen","label.show_plate":"Kennzeichen anzeigen","label.silhouette":"Fahrzeug","label.value_name":"Bezeichnung (leer = Name der Entität)","language.auto":"Automatisch (Sprache von Home Assistant)","language.name":"Deutsch","silhouette.hatchback":"Kompaktwagen","silhouette.race":"Formel-Rennwagen","silhouette.sedan":"Limousine","silhouette.suv":"SUV","silhouette.tractor":"Traktor","silhouette.van":"Transporter","silhouette.vintage":"Oldtimer"}},ft=Object.keys(_t);function vt(t,e,i={},s){let a=_t[function(t,e){if(e&&"auto"!==e&&_t[e])return e;const i=String(t&&(t.locale&&t.locale.language||t.language)||"en").toLowerCase();if(_t[i])return i;const s=i.split("-")[0];return _t[s]?s:"en"}(t,s)][e]??mt[e];if(void 0!==a){for(const[t,e]of Object.entries(i))a=a.replace(`{${t}}`,e);return a}}const yt=(t,e,i,s)=>D`
+  <circle class="tyre" cx=${t} cy=${e} r=${i}></circle>
+  <circle class="rim" cx=${t} cy=${e} r=${s}></circle>
+`,bt=(t,e,i,s)=>{const a=.71*s;return D`
+    <circle class="tyre" cx=${t} cy=${e} r=${i}></circle>
+    <circle class="rim" cx=${t} cy=${e} r=${s}></circle>
+    <path class="spokes" d="M${t-s} ${e} H${t+s} M${t} ${e-s} V${e+s}
+      M${t-a} ${e-a} L${t+a} ${e+a} M${t-a} ${e+a} L${t+a} ${e-a}"></path>
+    <circle class="hub" cx=${t} cy=${e} r="3"></circle>
+  `},$t=(t=180)=>D`<ellipse class="shadow" cx="200" cy="142" rx=${t} ry="5"></ellipse>`,wt={suv:{battery:{left:50,top:58,width:42},draw:()=>D`
+      ${$t()}
+      <path class="body" d="M28 112 V88 Q28 72 44 68 L60 64 L70 36 Q74 26 86 26 H238 Q252 26 262 34
+        L300 62 L352 70 Q372 74 374 92 V112 Q374 120 366 120 H338
+        A33 33 0 0 0 272 120 H128 A33 33 0 0 0 62 120 H36 Q28 120 28 112 Z"></path>
+      <path class="window" d="M80 34 H164 V62 H70 Z M172 34 H236 Q246 34 254 40 L284 62 H172 Z"></path>
+      <path class="line" d="M168 64 V112 M262 66 Q266 90 262 112"></path>
+      <path class="line" d="M64 84 H370"></path>
+      <rect class="light front" x="356" y="78" width="16" height="7" rx="3"></rect>
+      <rect class="light rear" x="29" y="76" width="9" height="10" rx="3"></rect>
+      <path class="mirror" d="M286 56 l10 -2 l2 8 l-9 1 Z"></path>
+      ${yt(305,120,26,14)}
+      ${yt(95,120,26,14)}
+    `},sedan:{battery:{left:50,top:62,width:40},draw:()=>D`
+      ${$t()}
+      <path class="body" d="M24 112 V92 Q24 80 38 78 L96 74 Q118 46 140 44 H236 Q252 44 262 52
+        L292 74 L356 80 Q376 84 376 100 V112 Q376 120 368 120 H330
+        A25 25 0 0 0 280 120 H120 A25 25 0 0 0 70 120 H32 Q24 120 24 112 Z"></path>
+      <path class="window" d="M108 72 Q124 52 142 50 H184 V72 Z M192 50 H234 Q246 50 254 56 L276 72 H192 Z"></path>
+      <path class="line" d="M188 74 V114 M60 88 H370"></path>
+      <rect class="light front" x="360" y="86" width="15" height="6" rx="3"></rect>
+      <rect class="light rear" x="25" y="84" width="8" height="8" rx="3"></rect>
+      <path class="mirror" d="M276 66 l10 -2 l2 7 l-9 1 Z"></path>
+      ${yt(305,120,22,12)}
+      ${yt(95,120,22,12)}
+    `},hatchback:{battery:{left:50,top:58,width:40},draw:()=>D`
+      ${$t(160)}
+      <path class="body" d="M50 112 V82 Q50 62 62 56 L84 36 Q90 30 100 30 H220 Q232 30 242 38
+        L280 66 L330 74 Q350 78 352 96 V112 Q352 120 344 120 H314
+        A25 25 0 0 0 264 120 H136 A25 25 0 0 0 86 120 H58 Q50 120 50 112 Z"></path>
+      <path class="window" d="M90 40 Q94 36 102 36 H158 V64 H72 Z M166 36 H218 Q228 36 236 42 L262 64 H166 Z"></path>
+      <path class="line" d="M162 66 V112 M56 80 H348"></path>
+      <rect class="light front" x="336" y="82" width="14" height="6" rx="3"></rect>
+      <rect class="light rear" x="51" y="68" width="8" height="12" rx="3"></rect>
+      <path class="mirror" d="M262 58 l10 -2 l2 7 l-9 1 Z"></path>
+      ${yt(289,120,22,12)}
+      ${yt(111,120,22,12)}
+    `},van:{battery:{left:50,top:58,width:42},draw:()=>D`
+      ${$t()}
+      <path class="body" d="M22 112 V36 Q22 22 36 22 H262 Q276 22 284 32 L318 66 L360 74
+        Q378 78 378 96 V112 Q378 120 370 120 H340
+        A25 25 0 0 0 290 120 H120 A25 25 0 0 0 70 120 H30 Q22 120 22 112 Z"></path>
+      <path class="window" d="M34 32 H120 V62 H34 Z M128 32 H220 V62 H128 Z
+        M228 32 H262 Q270 32 276 38 L300 62 H228 Z"></path>
+      <path class="line" d="M124 64 V112 M224 64 V112 M28 80 H372"></path>
+      <rect class="light front" x="362" y="82" width="14" height="7" rx="3"></rect>
+      <rect class="light rear" x="23" y="68" width="8" height="14" rx="3"></rect>
+      <path class="mirror" d="M300 54 l10 -2 l2 8 l-9 1 Z"></path>
+      ${yt(315,120,22,12)}
+      ${yt(95,120,22,12)}
+    `},race:{battery:{left:34,top:64,width:28},draw:()=>D`
+      ${$t(185)}
+      <rect class="body" x="16" y="38" width="44" height="9" rx="2"></rect>
+      <rect class="body" x="18" y="34" width="6" height="34" rx="2"></rect>
+      <path class="strut" d="M40 47 V82"></path>
+      <path class="body" d="M40 108 V90 Q42 80 54 78 L150 74 Q170 60 196 58 H222 Q236 60 244 72
+        L300 86 L386 104 Q394 108 386 113 L300 116 H60 Q40 116 40 108 Z"></path>
+      <path class="body" d="M140 76 L160 50 Q166 42 176 42 H188 L194 60 Z"></path>
+      <path class="line" d="M120 96 H300"></path>
+      <circle class="helmet" cx="206" cy="54" r="11"></circle>
+      <path class="strut" d="M184 62 Q206 40 238 64"></path>
+      <rect class="body" x="330" y="120" width="66" height="6" rx="2"></rect>
+      <rect class="body" x="390" y="108" width="6" height="18" rx="2"></rect>
+      ${yt(92,112,32,15)}
+      ${yt(318,116,27,13)}
+    `},tractor:{battery:{left:64,top:59,width:25},draw:()=>D`
+      ${$t(140)}
+      <rect class="body" x="92" y="10" width="116" height="8" rx="3"></rect>
+      <path class="body" d="M102 88 V22 Q102 16 108 16 H194 Q200 16 200 22 V88 Z"></path>
+      <path class="window" d="M114 26 H188 V68 H114 Z"></path>
+      <path class="body" d="M194 62 H304 Q320 62 322 78 V108 Q322 114 316 114 H194 Z"></path>
+      <path class="line" d="M308 72 V108 M314 72 V108"></path>
+      <rect class="mirror" x="260" y="30" width="7" height="34" rx="2"></rect>
+      <rect class="light front" x="314" y="66" width="8" height="8" rx="2"></rect>
+      <path class="body" d="M91 82 A52 52 0 0 1 189 82 L185 86 A48 48 0 0 0 95 86 Z"></path>
+      ${yt(140,100,44,22)}
+      ${yt(288,120,24,11)}
+    `},vintage:{battery:{left:50,top:60,width:34},draw:()=>D`
+      ${$t(170)}
+      ${bt(46,82,16,9)}
+      <rect class="body" x="64" y="18" width="146" height="6" rx="3"></rect>
+      <path class="body" d="M70 76 V30 Q70 24 76 24 H198 Q204 24 204 30 V76 Z"></path>
+      <path class="window" d="M80 32 H130 V64 H80 Z M138 32 H194 V64 H138 Z"></path>
+      <path class="line" d="M208 30 L216 70"></path>
+      <path class="body" d="M60 104 V82 Q60 74 68 74 H214 L226 70 H330 Q342 70 344 80 V104 Z"></path>
+      <rect class="window" x="336" y="66" width="10" height="38" rx="2"></rect>
+      <path class="body" d="M58 104 Q66 80 100 80 Q132 80 142 104 Z"></path>
+      <path class="body" d="M260 104 Q268 80 300 80 Q336 80 352 104 Z"></path>
+      <rect class="body" x="132" y="102" width="136" height="5" rx="2"></rect>
+      <circle class="light front" cx="352" cy="72" r="7"></circle>
+      ${bt(100,116,26,16)}
+      ${bt(300,116,26,16)}
+    `}},xt=Object.keys(wt),At="suv",Et=["0–20 %","20–40 %","40–60 %","60–80 %","80–100 %"],St=["charging","connect_cable","ready_for_charging","conserving","discharging","charging_interrupted"],Ct=[{name:"name",selector:{text:{}}},{name:"show_name",selector:{boolean:{}}},{name:"show_plate",selector:{boolean:{}}},{name:"silhouette",selector:{select:{mode:"dropdown",options:[]}}},{name:"image",selector:{text:{}}},{name:"language",selector:{select:{mode:"dropdown",options:[]}}}],Lt=[{name:"device",selector:{device:{entity:[{domain:"sensor"}]}}}],Ht=[{name:"battery",required:!0,selector:{entity:{filter:{domain:"sensor"}}}},{name:"charging_power",selector:{entity:{filter:{domain:"sensor"}}}},{name:"charging_state",selector:{entity:{filter:{domain:"sensor"}}}},{name:"plate",selector:{entity:{}}}],Mt=t=>({name:t,selector:{number:{min:0,max:1e3,step:.1,mode:"box",unit_of_measurement:"kW"}}}),kt=[{name:"entity",required:!0,selector:{entity:{}}},{name:"name",selector:{text:{}}},{name:"icon",selector:{icon:{}}}],Ot=(t,e)=>Array.isArray(t)&&Array.isArray(e)&&t.length===e.length&&t.every((t,i)=>t===e[i]),Pt=t=>null==t||""===t;class Vt extends lt{static get properties(){return{hass:{attribute:!1},_config:{state:!0}}}connectedCallback(){super.connectedCallback(),async function(){if((!customElements.get("ha-form")||!customElements.get("ha-entity-picker"))&&window.loadCardHelpers)try{const t=await window.loadCardHelpers(),e=await t.createCardElement({type:"entities",entities:[]});e&&e.constructor.getConfigElement&&await e.constructor.getConfigElement()}catch(t){}}().then(()=>this.requestUpdate())}setConfig(t){this._config={...t,entities:{...t.entities||{}},values:(t.values||[]).map(t=>"string"==typeof t?{entity:t}:{...t})}}_commit(t){const e={...t};for(const t of["name","image","device"])Pt(e[t])&&delete e[t];(Pt(e.silhouette)||e.silhouette===At)&&delete e.silhouette,(Pt(e.language)||"auto"===e.language)&&delete e.language,!0===e.show_name&&delete e.show_name,!0===e.show_plate&&delete e.show_plate;const i={};for(const[t,s]of Object.entries(e.entities||{}))Pt(s)||(i[t]=s);e.entities=i,e.charging_states&&e.charging_states.length&&!Ot(e.charging_states,gt)||delete e.charging_states,e.power_levels&&!Ot(e.power_levels,pt)||delete e.power_levels,e.colors&&!Ot(dt(e.colors).map(t=>t.toLowerCase()),ht)||delete e.colors,e.values=(e.values||[]).map(t=>{const e={entity:t.entity};return Pt(t.name)||(e.name=t.name),Pt(t.icon)||(e.icon=t.icon),e}),e.values.length||delete e.values,this._config={...t},ut(this,"config-changed",{config:e})}_generalChanged(t){t.stopPropagation();const e=t.detail.value;this._commit({...this._config,name:e.name,show_name:e.show_name,show_plate:e.show_plate,silhouette:e.silhouette,image:e.image,language:e.language})}_deviceChanged(t){t.stopPropagation(),this._commit({...this._config,device:t.detail.value.device})}_entitiesChanged(t){t.stopPropagation(),this._commit({...this._config,entities:{...t.detail.value}})}_chargingChanged(t){t.stopPropagation();const e=t.detail.value,i=[e.power_1,e.power_2,e.power_3].map((t,e)=>Number.isFinite(Number(t))&&!Pt(t)?Number(t):pt[e]);this._commit({...this._config,charging_states:e.charging_states||[],power_levels:i})}_valueChanged(t,e){e.stopPropagation();const i=[...this._config.values];i[t]={...e.detail.value},this._commit({...this._config,values:i})}_moveValue(t,e){const i=[...this._config.values],s=t+e;s<0||s>=i.length||([i[t],i[s]]=[i[s],i[t]],this._commit({...this._config,values:i}))}_removeValue(t){const e=this._config.values.filter((e,i)=>i!==t);this._commit({...this._config,values:e})}_addValue(t){t.stopPropagation();const e=t.detail.value&&t.detail.value.entity;e&&(this._commit({...this._config,values:[...this._config.values,{entity:e}]}),t.target.data={})}_colorChanged(t,e){const i=[...dt(this._config.colors)];i[t]=e.target.value,this._commit({...this._config,colors:i})}_resetColors(){const{colors:t,...e}=this._config;this._commit(e)}_t(t,e){return vt(this.hass,t,e,this._config&&this._config.language)}_label=t=>"name"===t.name&&t._value?this._t("label.value_name"):this._t(`label.${t.name}`)||t.name;_helper=t=>this._t(`helper.${t.name}`);_deviceEntities(){const t=this._config.device;if(!t||!this.hass||!this.hass.entities)return;const e=Object.values(this.hass.entities).filter(e=>e.device_id===t).map(t=>t.entity_id);return e.length?e:void 0}_filterSchema(t,e=[]){const i=this._deviceEntities();if(!i)return t;const s=[...new Set([...i,...e.filter(Boolean)])];return t.map(t=>t.selector&&t.selector.entity?{...t,selector:{entity:{...t.selector.entity,include_entities:s}}}:t)}_generalSchema(){const t=xt.map(t=>({value:t,label:this._t(`silhouette.${t}`)||t})),e=[{value:"auto",label:this._t("language.auto")},...ft.map(t=>({value:t,label:_t[t]["language.name"]}))];return Ct.map(i=>"silhouette"===i.name?{...i,selector:{select:{mode:"dropdown",options:t}}}:"language"===i.name?{...i,selector:{select:{mode:"dropdown",options:e}}}:i)}_chargingSchema(){const t=this.hass&&this._config.entities.charging_state?this.hass.states[this._config.entities.charging_state]:void 0,e=t&&Array.isArray(t.attributes.options)?t.attributes.options:[],i=this._config.charging_states||gt;return[{name:"charging_states",selector:{select:{multiple:!0,custom_value:!0,mode:"list",options:[...new Set([...e,...St,...i])].map(t=>({value:t,label:t}))}}},{type:"grid",name:"",schema:[Mt("power_1"),Mt("power_2"),Mt("power_3")]}]}_form(t,e,i){return R`<ha-form
       .hass=${this.hass}
       .data=${e}
       .schema=${t}
       .computeLabel=${this._label}
       .computeHelper=${this._helper}
       @value-changed=${i}
-    ></ha-form>`}render(){if(!this._config||!this.hass)return q;const t=this._config,e=t.power_levels||pt,i=t.colors||ht,s=yt.map(t=>"name"===t.name?{...t,_value:!0}:t),r=Math.ceil(t.values.length/2);return D`
+    ></ha-form>`}render(){if(!this._config||!this.hass)return W;const t=this._config,e=t.power_levels||pt,i=dt(t.colors),s=kt.map(t=>"name"===t.name?{...t,_value:!0}:t),a=this._filterSchema(Ht,Object.values(t.entities)),r=Math.ceil(t.values.length/2);return R`
       <div class="section">
         <h3>${this._t("editor.general")}</h3>
-        ${this._form(vt,{name:t.name||"",show_name:!1!==t.show_name,image:t.image||""},this._generalChanged)}
+        ${this._form(this._generalSchema(),{name:t.name||"",show_name:!1!==t.show_name,show_plate:!1!==t.show_plate,silhouette:t.silhouette||At,image:t.image||"",language:t.language||"auto"},this._generalChanged)}
       </div>
 
       <div class="section">
         <h3>${this._t("editor.entities")}</h3>
-        ${this._form($t,t.entities,this._entitiesChanged)}
+        ${this._form(Lt,{device:t.device||""},this._deviceChanged)}
+        ${this._form(a,t.entities,this._entitiesChanged)}
       </div>
 
       <div class="section">
         <h3>${this._t("editor.charging")}</h3>
         <p class="note">${this._t("editor.charging_note")}</p>
-        ${this._form(this._chargingSchema(),{charging_states:t.charging_states||dt,power_1:e[0],power_2:e[1],power_3:e[2]},this._chargingChanged)}
+        ${this._form(this._chargingSchema(),{charging_states:t.charging_states||gt,power_1:e[0],power_2:e[1],power_3:e[2]},this._chargingChanged)}
       </div>
 
       <div class="section">
         <h3>${this._t("editor.values")}</h3>
         <p class="note">${this._t("editor.values_note")}</p>
-        ${t.values.map((e,i)=>D`
+        ${t.values.map((e,i)=>R`
             <div class="value-row">
               <div class="value-head">
                 <span class="badge">${this._t(i<r?"editor.left":"editor.right")} · ${i+1}</span>
@@ -34,11 +136,11 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
                 ${this._iconButton("M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z",this._t("editor.move_down"),i===t.values.length-1,()=>this._moveValue(i,1))}
                 ${this._iconButton("M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z",this._t("editor.remove"),!1,()=>this._removeValue(i))}
               </div>
-              ${this._form(s,e,t=>this._valueChanged(i,t))}
+              ${this._form(this._filterSchema(s,[e.entity]),e,t=>this._valueChanged(i,t))}
             </div>
           `)}
         <div class="add">
-          ${this._form([{name:"entity",selector:{entity:{}}}],{},this._addValue)}
+          ${this._form(this._filterSchema([{name:"entity",selector:{entity:{}}}]),{},this._addValue)}
           <span class="note">${this._t("editor.add_note")}</span>
         </div>
       </div>
@@ -46,14 +148,14 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       <div class="section">
         <h3>${this._t("editor.colors")}</h3>
         <div class="colors">
-          ${i.map((t,e)=>D`
+          ${i.map((t,e)=>R`
               <label class="color">
                 <input
                   type="color"
                   .value=${/^#[0-9a-f]{6}$/i.test(t)?t:"#000000"}
                   @change=${t=>this._colorChanged(e,t)}
                 />
-                <span>${mt[e]}</span>
+                <span>${Et[e]||this._t("editor.full_color")}</span>
               </label>
             `)}
         </div>
@@ -61,7 +163,7 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
           ${this._t("editor.reset_colors")}
         </button>
       </div>
-    `}_iconButton(t,e,i,s){return D`<button
+    `}_iconButton(t,e,i,s){return R`<button
       class="icon-button"
       title=${e}
       aria-label=${e}
@@ -69,7 +171,7 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       @click=${s}
     >
       <svg viewBox="0 0 24 24"><path d=${t}></path></svg>
-    </button>`}static get styles(){return n`
+    </button>`}static get styles(){return r`
       :host {
         display: block;
       }
@@ -165,23 +267,24 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
         color: var(--disabled-text-color, #bdbdbd);
         cursor: default;
       }
-    `}}customElements.get("car-info-card-editor")||customElements.define("car-info-card-editor",At);const Et=["unknown","unavailable","none",""],St=12,Ct=12,Lt=180,kt=76,Mt=6,Pt=5;class Ot extends lt{static get properties(){return{hass:{attribute:!1},_config:{state:!0}}}static getConfigElement(){return document.createElement("car-info-card-editor")}static getStubConfig(t){const e=(t?Object.values(t.states):[]).find(t=>t.entity_id.startsWith("sensor.")&&"battery"===t.attributes.device_class);return{name:"Auto",entities:{battery:e?e.entity_id:""},values:[]}}setConfig(t){if(!t)throw new Error("Invalid configuration.");if(void 0!==t.entities&&"object"!=typeof t.entities)throw new Error("entities must be an object.");if(t.values&&!Array.isArray(t.values))throw new Error("values must be a list.");if(t.colors&&(!Array.isArray(t.colors)||5!==t.colors.length))throw new Error("colors must contain exactly 5 colors.");this._config={show_name:!0,values:[],...t,entities:{...t.entities||{}},values:(t.values||[]).map(t=>"string"==typeof t?{entity:t}:t)}}getCardSize(){return 5}getGridOptions(){return{columns:12,min_columns:6}}_stateObj(t){return t&&this.hass?this.hass.states[t]:void 0}_isAvailable(t){return t&&!Et.includes(String(t.state).toLowerCase())}_formatState(t){if(!this._isAvailable(t))return"–";if(this.hass.formatEntityState)return this.hass.formatEntityState(t);const e=t.attributes.unit_of_measurement;return e?`${t.state} ${e}`:t.state}_soc(){const t=this._stateObj(this._config.entities.battery);if(!this._isAvailable(t))return;const e=parseFloat(t.state);return Number.isFinite(e)?Math.min(100,Math.max(0,e)):void 0}_powerKw(){const t=this._stateObj(this._config.entities.charging_power);if(!this._isAvailable(t))return 0;const e=parseFloat(t.state);if(!Number.isFinite(e))return 0;const i=(t.attributes.unit_of_measurement||"kW").trim();return"W"===i?e/1e3:"MW"===i?1e3*e:e}_isCharging(){const t=this._config.entities.charging_state;if(t){const e=this._stateObj(t),i=this._config.charging_states||dt;return!!e&&i.includes(e.state)}return this._powerKw()>0}_chargeLevel(){if(!this._isCharging())return 0;const t=this._powerKw(),e=this._config.power_levels||pt,i=e.findIndex(e=>t<=e);return-1===i?e.length+1:i+1}_moreInfo(t){t&&gt(this,"hass-more-info",{entityId:t})}render(){if(!this._config||!this.hass)return q;const t=this._config;if(!t.entities.battery)return D`<ha-card>
+    `}}customElements.get("car-info-card-editor")||customElements.define("car-info-card-editor",Vt);const Qt=["unknown","unavailable","none",""],zt=12,Ut=12,Nt=180,Tt=76,jt=6,Zt=5;class Bt extends lt{static get properties(){return{hass:{attribute:!1},_config:{state:!0}}}static getConfigElement(){return document.createElement("car-info-card-editor")}static getStubConfig(t){const e=(t?Object.values(t.states):[]).find(t=>t.entity_id.startsWith("sensor.")&&"battery"===t.attributes.device_class);return{name:"Auto",entities:{battery:e?e.entity_id:""},values:[]}}setConfig(t){if(!t)throw new Error("Invalid configuration.");if(void 0!==t.entities&&"object"!=typeof t.entities)throw new Error("entities must be an object.");if(t.language&&"auto"!==t.language&&!ft.includes(t.language))throw new Error(`language must be auto or one of: ${ft.join(", ")}.`);if(t.silhouette&&!wt[t.silhouette])throw new Error(`silhouette must be one of: ${xt.join(", ")}.`);if(t.values&&!Array.isArray(t.values))throw new Error("values must be a list.");if(t.colors&&(!Array.isArray(t.colors)||![5,6].includes(t.colors.length)))throw new Error("colors must contain 5 segment colors and optionally a 6th color for fully charged.");this._config={show_name:!0,show_plate:!0,values:[],...t,entities:{...t.entities||{}},values:(t.values||[]).map(t=>"string"==typeof t?{entity:t}:t)}}_t(t,e){return vt(this.hass,t,e,this._config&&this._config.language)}getCardSize(){return 5}getGridOptions(){return{columns:12,min_columns:6}}_stateObj(t){return t&&this.hass?this.hass.states[t]:void 0}_isAvailable(t){return t&&!Qt.includes(String(t.state).toLowerCase())}_formatState(t){if(!this._isAvailable(t))return"–";if(this.hass.formatEntityState)return this.hass.formatEntityState(t);const e=t.attributes.unit_of_measurement;return e?`${t.state} ${e}`:t.state}_soc(){const t=this._stateObj(this._config.entities.battery);if(!this._isAvailable(t))return;const e=parseFloat(t.state);return Number.isFinite(e)?Math.min(100,Math.max(0,e)):void 0}_powerKw(){const t=this._stateObj(this._config.entities.charging_power);if(!this._isAvailable(t))return 0;const e=parseFloat(t.state);if(!Number.isFinite(e))return 0;const i=(t.attributes.unit_of_measurement||"kW").trim();return"W"===i?e/1e3:"MW"===i?1e3*e:e}_isCharging(){const t=this._config.entities.charging_state;if(t){const e=this._stateObj(t),i=this._config.charging_states||gt;return!!e&&i.includes(e.state)}return this._powerKw()>0}_chargeLevel(){if(!this._isCharging())return 0;const t=this._powerKw(),e=this._config.power_levels||pt,i=e.findIndex(e=>t<=e);return-1===i?e.length+1:i+1}_moreInfo(t){t&&ut(this,"hass-more-info",{entityId:t})}render(){if(!this._config||!this.hass)return W;const t=this._config;if(!t.entities.battery)return R`<ha-card>
         <div class="hint">
-          ${_t(this.hass,"card.hint")}
+          ${this._t("card.hint")}
         </div>
-      </ha-card>`;const e=this._soc(),i=this._chargeLevel(),s=t.values,r=Math.ceil(s.length/2),n=s.slice(0,r),o=s.slice(r),a=this._stateObj(t.entities.plate);return D`
+      </ha-card>`;const e=this._soc(),i=this._chargeLevel(),s=t.values,a=Math.ceil(s.length/2),r=s.slice(0,a),o=s.slice(a),n=this._stateObj(t.entities.plate),l=!1!==t.show_name&&!!t.name,c=!1!==t.show_plate&&this._isAvailable(n);return R`
       <ha-card>
-        ${!1!==t.show_name&&(t.name||a)?D`<div class="header">
-              <span class="name">${t.name||""}</span>
-              ${this._isAvailable(a)?D`<span class="plate">${a.state}</span>`:q}
-            </div>`:q}
+        ${l||c?R`<div class="header">
+              <span class="name">${l?t.name:""}</span>
+              ${c?R`<span class="plate">${n.state}</span>`:W}
+            </div>`:W}
         <div class="layout ${s.length?"":"no-values"}">
-          <div class="values left">${n.map(t=>this._renderValue(t))}</div>
+          <div class="values left">${r.map(t=>this._renderValue(t))}</div>
           <div class="center">
             <div class="car">
-              ${t.image?D`<img src=${t.image} alt="" />`:this._renderCar()}
+              ${t.image?R`<img src=${t.image} alt="" />`:this._renderCar()}
               <div
                 class="battery level-${i}"
+                style=${this._batteryStyle()}
                 @click=${()=>this._moreInfo(t.entities.battery)}
               >
                 ${this._renderBattery(e,i)}
@@ -193,38 +296,37 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
           <div class="values right">${o.map(t=>this._renderValue(t))}</div>
         </div>
       </ha-card>
-    `}_renderStatus(t){const e=this._config.entities,i=this._stateObj(e.charging_state),s=[];if(i&&s.push(this._formatState(i)),t>0){const t=this._stateObj(e.charging_power);this._isAvailable(t)&&s.push(this._formatState(t))}return s.length?D`<div
+    `}_batteryStyle(){const t=this._config.image?wt[At].battery:this._silhouette().battery;return`left:${t.left}%;top:${t.top}%;width:${t.width}%`}_renderStatus(t){const e=this._config.entities,i=this._stateObj(e.charging_state),s=[];if(i&&s.push(this._formatState(i)),t>0){const t=this._stateObj(e.charging_power);this._isAvailable(t)&&s.push(this._formatState(t))}return s.length?R`<div
       class="status ${t>0?"charging":""}"
       @click=${()=>this._moreInfo(e.charging_state||e.charging_power)}
     >
       ${s.join(" · ")}
-    </div>`:q}_renderValue(t){const e=this._stateObj(t.entity),i=t.name||e&&e.attributes.friendly_name||t.entity;return D`
+    </div>`:W}_renderValue(t){const e=this._stateObj(t.entity),i=t.name||e&&e.attributes.friendly_name||t.entity;return R`
       <div class="value" @click=${()=>this._moreInfo(t.entity)}>
-        ${t.icon?D`<ha-icon class="icon" .icon=${t.icon}></ha-icon>`:e?D`<ha-state-icon
+        ${t.icon?R`<ha-icon class="icon" .icon=${t.icon}></ha-icon>`:e?R`<ha-state-icon
               class="icon"
               .hass=${this.hass}
               .stateObj=${e}
-            ></ha-state-icon>`:q}
+            ></ha-state-icon>`:W}
         <div class="text">
           <span class="label">${i}</span>
-          <span class="state">${e?this._formatState(e):_t(this.hass,"card.not_found")}</span>
+          <span class="state">${e?this._formatState(e):this._t("card.not_found")}</span>
         </div>
       </div>
-    `}_renderBattery(t,e){const i=this._config.colors||ht,s=(Lt-Mt*(Pt-1))/Pt,r=100/Pt,n=void 0===t?-1:Math.min(Pt-1,Math.floor(t/r)),o=i.map((i,o)=>{const a=St+o*(s+Mt),l=void 0===t?0:Math.min(1,Math.max(0,(t-o*r)/r)),c=e>0&&o===n;return W`
-        <rect class="track" x=${a} y=${Ct} width=${s} height=${kt} rx="4"
-          fill=${i}></rect>
-        ${l>0?W`<rect class="seg ${c?"active":""}" x=${a} y=${Ct}
-              width=${s*l} height=${kt} rx="4" fill=${i}></rect>`:q}
-        ${c&&l<1?W`<rect class="seg-next" x=${a+s*l} y=${Ct}
-              width=${s*(1-l)} height=${kt} rx="4" fill=${i}></rect>`:q}
-      `});return D`
+    `}_renderBattery(t,e){const i=dt(this._config.colors),s=void 0!==t&&Math.round(t)>=100,a=(Nt-jt*(Zt-1))/Zt,r=100/Zt,o=void 0===t?-1:Math.min(Zt-1,Math.floor(t/r)),n=i.slice(0,Zt).map((n,l)=>{const c=s?i[Zt]:n,h=zt+l*(a+jt),d=void 0===t?0:Math.min(1,Math.max(0,(t-l*r)/r)),g=e>0&&l===o;return D`
+        <rect class="track" x=${h} y=${Ut} width=${a} height=${Tt} rx="4"></rect>
+        ${d>0?D`<rect class="seg ${g?"active":""}" x=${h} y=${Ut}
+              width=${a*d} height=${Tt} rx="4" fill=${c}></rect>`:W}
+        ${g&&d<1?D`<rect class="seg-next" x=${h+a*d} y=${Ut}
+              width=${a*(1-d)} height=${Tt} rx="4" fill=${c}></rect>`:W}
+      `});return R`
       <svg
         viewBox="0 0 220 100"
         role="img"
-        aria-label=${void 0===t?_t(this.hass,"card.soc_unknown"):_t(this.hass,"card.soc",{soc:Math.round(t)})+(e>0?`, ${_t(this.hass,"card.charging")}`:"")}
+        aria-label=${void 0===t?this._t("card.soc_unknown"):this._t("card.soc",{soc:Math.round(t)})+(e>0?`, ${this._t("card.charging")}`:"")}
       >
         <rect class="shell-bg" x="4" y="4" width="196" height="92" rx="12"></rect>
-        ${o}
+        ${n}
         <rect class="shell" x="4" y="4" width="196" height="92" rx="12"></rect>
         <rect class="cap" x="202" y="34" width="12" height="32" rx="4"></rect>
         <g class="bolt">
@@ -234,30 +336,11 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
           ></path>
         </g>
       </svg>
-    `}_renderCar(){return D`
-      <svg class="car-svg" viewBox="0 0 400 150" aria-hidden="true">
-        <ellipse class="shadow" cx="200" cy="142" rx="180" ry="5"></ellipse>
-        <path
-          class="body"
-          d="M28 112 V88 Q28 72 44 68 L60 64 L70 36 Q74 26 86 26 H238 Q252 26 262 34
-             L300 62 L352 70 Q372 74 374 92 V112 Q374 120 366 120 H338
-             A33 33 0 0 0 272 120 H128 A33 33 0 0 0 62 120 H36 Q28 120 28 112 Z"
-        ></path>
-        <path
-          class="window"
-          d="M80 34 H164 V62 H70 Z M172 34 H236 Q246 34 254 40 L284 62 H172 Z"
-        ></path>
-        <path class="line" d="M168 64 V112 M262 66 Q266 90 262 112"></path>
-        <path class="line" d="M64 84 H370"></path>
-        <rect class="light front" x="356" y="78" width="16" height="7" rx="3"></rect>
-        <rect class="light rear" x="29" y="76" width="9" height="10" rx="3"></rect>
-        <path class="mirror" d="M286 56 l10 -2 l2 8 l-9 1 Z"></path>
-        <circle class="tyre" cx="305" cy="120" r="26"></circle>
-        <circle class="rim" cx="305" cy="120" r="14"></circle>
-        <circle class="tyre" cx="95" cy="120" r="26"></circle>
-        <circle class="rim" cx="95" cy="120" r="14"></circle>
+    `}_silhouette(){return wt[this._config.silhouette]||wt[At]}_renderCar(){const t=wt[this._config.silhouette]?this._config.silhouette:At;return R`
+      <svg class="car-svg" viewBox="0 0 400 150" aria-hidden="true" data-silhouette=${t}>
+        ${wt[t].draw()}
       </svg>
-    `}static get styles(){return n`
+    `}static get styles(){return r`
       :host {
         --cic-text: var(--primary-text-color, #212121);
         --cic-secondary: var(--secondary-text-color, #727272);
@@ -299,7 +382,7 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       }
       .layout {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr) minmax(0, 1fr);
         gap: 12px;
         align-items: center;
       }
@@ -337,19 +420,25 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
         flex-direction: column;
         min-width: 0;
       }
+      /* Long labels and values wrap onto a second line, then get cut off */
+      .label,
+      .state {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+        overflow-wrap: break-word;
+      }
       .label {
         font-size: 0.75rem;
+        line-height: 1.25;
         color: var(--cic-secondary);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
       }
       .state {
         font-size: 1rem;
+        line-height: 1.25;
         font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
       }
       .center {
         display: flex;
@@ -405,6 +494,26 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
         stroke: var(--cic-secondary);
         stroke-width: 3;
       }
+      .car-svg .spokes {
+        fill: none;
+        stroke: var(--cic-secondary);
+        stroke-width: 2;
+      }
+      .car-svg .hub {
+        fill: var(--cic-secondary);
+      }
+      .car-svg .strut {
+        fill: none;
+        stroke: var(--cic-secondary);
+        stroke-width: 4;
+        stroke-linecap: round;
+      }
+      .car-svg .helmet {
+        fill: var(--cic-secondary);
+        fill-opacity: 0.55;
+        stroke: var(--cic-secondary);
+        stroke-width: 2;
+      }
       .car-svg .shadow {
         fill: var(--cic-secondary);
         fill-opacity: 0.15;
@@ -435,8 +544,10 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       .cap {
         fill: var(--cic-text);
       }
+      /* Empty part of the battery: neutral, so no segment color shows through */
       .track {
-        fill-opacity: 0.15;
+        fill: var(--cic-track, #9e9e9e);
+        fill-opacity: 0.18;
       }
       .bolt path {
         fill: var(--cic-bolt-off);
@@ -543,4 +654,4 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
           flex-direction: row;
         }
       }
-    `}}var Ht;customElements.get("car-info-card")||(customElements.define("car-info-card",Ot),window.customCards=window.customCards||[],window.customCards.push({type:"car-info-card",name:"Car Info Card",description:(Ht="card.description",_t({language:navigator.language||"en"},Ht)),preview:!0}),console.info("%c CAR-INFO-CARD %c 0.2.0 ","color:#fff;background:#2e7d32;font-weight:600","color:#2e7d32;background:#fff"));
+    `}}var Rt;customElements.get("car-info-card")||(customElements.define("car-info-card",Bt),window.customCards=window.customCards||[],window.customCards.push({type:"car-info-card",name:"Car Info Card",description:(Rt="card.description",vt({language:navigator.language||"en"},Rt)),preview:!0}),console.info("%c CAR-INFO-CARD %c 0.2.0 ","color:#fff;background:#2e7d32;font-weight:600","color:#2e7d32;background:#fff"));

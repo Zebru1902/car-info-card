@@ -1,100 +1,25 @@
-// UI strings. English is the default; other languages follow the
-// language set in Home Assistant and fall back to English.
-const STRINGS = {
-  en: {
-    "card.description":
-      "Electric car card with a 5-segment battery, charging bolt and configurable values.",
-    "card.hint": "Please select the battery level entity (entities.battery) in the editor.",
-    "card.not_found": "not found",
-    "card.soc_unknown": "Battery level unknown",
-    "card.soc": "Battery level {soc} %",
-    "card.charging": "charging",
-    "editor.general": "General",
-    "editor.entities": "Entities",
-    "editor.charging": "Charging",
-    "editor.charging_note":
-      "The bolt is green while the car is charging. Its pulse and glow get stronger with higher charging power (4 levels).",
-    "editor.values": "Values around the car",
-    "editor.values_note": "The first half is shown on the left, the second half on the right.",
-    "editor.left": "left",
-    "editor.right": "right",
-    "editor.move_up": "Move up",
-    "editor.move_down": "Move down",
-    "editor.remove": "Remove",
-    "editor.add_note": "Select an entity to add a value.",
-    "editor.colors": "Battery segment colors",
-    "editor.reset_colors": "Default colors",
-    "label.name": "Name",
-    "label.show_name": "Show header (name, licence plate)",
-    "label.image": "Custom image (URL, e.g. /local/car.png)",
-    "label.battery": "Battery level (required)",
-    "label.charging_power": "Charging power",
-    "label.charging_state": "Charging state",
-    "label.plate": "Licence plate",
-    "label.charging_states": "States that count as charging",
-    "label.power_1": "Level 1 up to",
-    "label.power_2": "Level 2 up to",
-    "label.power_3": "Level 3 up to (level 4 above)",
-    "label.entity": "Entity",
-    "label.value_name": "Label (empty = entity name)",
-    "label.icon": "Icon (empty = entity icon)",
-    "helper.image": "Leave empty for the built-in silhouette.",
-    "helper.charging_state":
-      "Without a charging state, the car counts as charging while the charging power is above 0.",
-    "helper.charging_states": "Default: charging",
-  },
-  de: {
-    "card.description":
-      "Auto-Karte mit Batterie in 5 Segmenten, Lade-Blitz und frei wählbaren Werten.",
-    "card.hint": "Bitte im Editor die Entität für den Ladestand (entities.battery) wählen.",
-    "card.not_found": "nicht gefunden",
-    "card.soc_unknown": "Ladestand unbekannt",
-    "card.soc": "Ladestand {soc} %",
-    "card.charging": "lädt",
-    "editor.general": "Allgemein",
-    "editor.entities": "Entitäten",
-    "editor.charging": "Laden",
-    "editor.charging_note":
-      "Der Blitz ist grün, solange das Auto lädt. Puls und Leuchten werden mit steigender Ladeleistung stärker (4 Stufen).",
-    "editor.values": "Werte rund um das Auto",
-    "editor.values_note": "Die erste Hälfte steht links, die zweite rechts.",
-    "editor.left": "links",
-    "editor.right": "rechts",
-    "editor.move_up": "Nach oben",
-    "editor.move_down": "Nach unten",
-    "editor.remove": "Entfernen",
-    "editor.add_note": "Entität wählen, um einen Wert hinzuzufügen.",
-    "editor.colors": "Farben der Batteriesegmente",
-    "editor.reset_colors": "Standardfarben",
-    "label.name": "Name",
-    "label.show_name": "Kopfzeile anzeigen (Name, Kennzeichen)",
-    "label.image": "Eigenes Bild (URL, z. B. /local/auto.png)",
-    "label.battery": "Ladestand (Pflicht)",
-    "label.charging_power": "Ladeleistung",
-    "label.charging_state": "Ladezustand",
-    "label.plate": "Kennzeichen",
-    "label.charging_states": "Zustände, die als Laden gelten",
-    "label.power_1": "Stufe 1 bis",
-    "label.power_2": "Stufe 2 bis",
-    "label.power_3": "Stufe 3 bis (darüber Stufe 4)",
-    "label.entity": "Entität",
-    "label.value_name": "Bezeichnung (leer = Name der Entität)",
-    "label.icon": "Symbol (leer = Symbol der Entität)",
-    "helper.image": "Leer lassen für die eingebaute Silhouette.",
-    "helper.charging_state":
-      "Ohne Ladezustand gilt das Auto als ladend, sobald die Ladeleistung über 0 liegt.",
-    "helper.charging_states": "Standard: charging",
-  },
-};
+// UI strings live in src/translations/<language>.json (see CONTRIBUTING.md).
+// English is the reference and the fallback for missing keys.
+import en from "./translations/en.json";
+import de from "./translations/de.json";
 
-export const language = (hass) => {
-  const lang = (hass && ((hass.locale && hass.locale.language) || hass.language)) || "en";
-  return String(lang).split("-")[0].toLowerCase();
-};
+export const TRANSLATIONS = { en, de };
+export const LANGUAGES = Object.keys(TRANSLATIONS);
 
-export function localize(hass, key, vars = {}) {
-  const table = STRINGS[language(hass)] || STRINGS.en;
-  let text = table[key] ?? STRINGS.en[key];
+// Language to use: the card option `language` if set, otherwise the
+// language of the Home Assistant user, otherwise English.
+export function language(hass, override) {
+  if (override && override !== "auto" && TRANSLATIONS[override]) return override;
+  const lang = String(
+    (hass && ((hass.locale && hass.locale.language) || hass.language)) || "en"
+  ).toLowerCase();
+  if (TRANSLATIONS[lang]) return lang;
+  const base = lang.split("-")[0];
+  return TRANSLATIONS[base] ? base : "en";
+}
+
+export function localize(hass, key, vars = {}, override) {
+  let text = TRANSLATIONS[language(hass, override)][key] ?? en[key];
   if (text === undefined) return undefined;
   for (const [k, v] of Object.entries(vars)) text = text.replace(`{${k}}`, v);
   return text;
@@ -102,4 +27,4 @@ export function localize(hass, key, vars = {}) {
 
 // Used where no hass object exists yet (card picker description)
 export const browserLanguageString = (key) =>
-  localize({ language: (navigator.language || "en") }, key);
+  localize({ language: navigator.language || "en" }, key);

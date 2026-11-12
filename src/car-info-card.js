@@ -1,12 +1,13 @@
 import { LitElement, html, svg, css, nothing } from "lit";
 import {
   VERSION,
-  DEFAULT_COLORS,
+  resolveColors,
   DEFAULT_CHARGING_STATES,
   DEFAULT_POWER_LEVELS,
   fireEvent,
 } from "./const.js";
-import { localize, browserLanguageString } from "./localize.js";
+import { localize, browserLanguageString, LANGUAGES } from "./localize.js";
+import { SILHOUETTES, SILHOUETTE_NAMES, DEFAULT_SILHOUETTE } from "./silhouettes.js";
 import "./car-info-card-editor.js";
 
 const UNAVAILABLE = ["unknown", "unavailable", "none", ""];
@@ -47,14 +48,24 @@ class CarInfoCard extends LitElement {
     if (config.entities !== undefined && typeof config.entities !== "object") {
       throw new Error("entities must be an object.");
     }
+    if (config.language && config.language !== "auto" && !LANGUAGES.includes(config.language)) {
+      throw new Error(`language must be auto or one of: ${LANGUAGES.join(", ")}.`);
+    }
+    if (config.silhouette && !SILHOUETTES[config.silhouette]) {
+      throw new Error(`silhouette must be one of: ${SILHOUETTE_NAMES.join(", ")}.`);
+    }
     if (config.values && !Array.isArray(config.values)) {
       throw new Error("values must be a list.");
     }
-    if (config.colors && (!Array.isArray(config.colors) || config.colors.length !== 5)) {
-      throw new Error("colors must contain exactly 5 colors.");
+    if (
+      config.colors &&
+      (!Array.isArray(config.colors) || ![5, 6].includes(config.colors.length))
+    ) {
+      throw new Error("colors must contain 5 segment colors and optionally a 6th color for fully charged.");
     }
     this._config = {
       show_name: true,
+      show_plate: true,
       values: [],
       ...config,
       entities: { ...(config.entities || {}) },
@@ -62,6 +73,10 @@ class CarInfoCard extends LitElement {
         typeof v === "string" ? { entity: v } : v
       ),
     };
+  }
+
+  _t(key, vars) {
+    return localize(this.hass, key, vars, this._config && this._config.language);
   }
 
   getCardSize() {
@@ -138,7 +153,7 @@ class CarInfoCard extends LitElement {
     if (!cfg.entities.battery) {
       return html`<ha-card>
         <div class="hint">
-          ${localize(this.hass, "card.hint")}
+          ${this._t("card.hint")}
         </div>
       </ha-card>`;
     }
@@ -149,15 +164,15 @@ class CarInfoCard extends LitElement {
     const left = values.slice(0, half);
     const right = values.slice(half);
     const plate = this._stateObj(cfg.entities.plate);
+    const showName = cfg.show_name !== false && !!cfg.name;
+    const showPlate = cfg.show_plate !== false && this._isAvailable(plate);
 
     return html`
       <ha-card>
-        ${cfg.show_name !== false && (cfg.name || plate)
+        ${showName || showPlate
           ? html`<div class="header">
-              <span class="name">${cfg.name || ""}</span>
-              ${this._isAvailable(plate)
-                ? html`<span class="plate">${plate.state}</span>`
-                : nothing}
+              <span class="name">${showName ? cfg.name : ""}</span>
+              ${showPlate ? html`<span class="plate">${plate.state}</span>` : nothing}
             </div>`
           : nothing}
         <div class="layout ${values.length ? "" : "no-values"}">
@@ -169,6 +184,7 @@ class CarInfoCard extends LitElement {
                 : this._renderCar()}
               <div
                 class="battery level-${level}"
+                style=${this._batteryStyle()}
                 @click=${() => this._moreInfo(cfg.entities.battery)}
               >
                 ${this._renderBattery(soc, level)}
@@ -181,6 +197,12 @@ class CarInfoCard extends LitElement {
         </div>
       </ha-card>
     `;
+  }
+
+  // Position of the battery: per built-in drawing, default position for own images
+  _batteryStyle() {
+    const pos = this._config.image ? SILHOUETTES[DEFAULT_SILHOUETTE].battery : this._silhouette().battery;
+    return `left:${pos.left}%;top:${pos.top}%;width:${pos.width}%`;
   }
 
   _renderStatus(level) {
@@ -220,26 +242,28 @@ class CarInfoCard extends LitElement {
           : nothing}
         <div class="text">
           <span class="label">${name}</span>
-          <span class="state">${stateObj ? this._formatState(stateObj) : localize(this.hass, "card.not_found")}</span>
+          <span class="state">${stateObj ? this._formatState(stateObj) : this._t("card.not_found")}</span>
         </div>
       </div>
     `;
   }
 
   _renderBattery(soc, level) {
-    const colors = this._config.colors || DEFAULT_COLORS;
+    const colors = resolveColors(this._config.colors);
+    const full = soc !== undefined && Math.round(soc) >= 100;
     const segW = (BAT.w - BAT.gap * (BAT.segments - 1)) / BAT.segments;
     const step = 100 / BAT.segments;
     const current =
       soc === undefined ? -1 : Math.min(BAT.segments - 1, Math.floor(soc / step));
 
-    const segments = colors.map((color, i) => {
+    const segments = colors.slice(0, BAT.segments).map((segColor, i) => {
+      // When fully charged, all segments take the "full" color
+      const color = full ? colors[BAT.segments] : segColor;
       const x = BAT.x + i * (segW + BAT.gap);
       const fill = soc === undefined ? 0 : Math.min(1, Math.max(0, (soc - i * step) / step));
       const active = level > 0 && i === current;
       return svg`
-        <rect class="track" x=${x} y=${BAT.y} width=${segW} height=${BAT.h} rx="4"
-          fill=${color}></rect>
+        <rect class="track" x=${x} y=${BAT.y} width=${segW} height=${BAT.h} rx="4"></rect>
         ${fill > 0
           ? svg`<rect class="seg ${active ? "active" : ""}" x=${x} y=${BAT.y}
               width=${segW * fill} height=${BAT.h} rx="4" fill=${color}></rect>`
@@ -256,9 +280,9 @@ class CarInfoCard extends LitElement {
         viewBox="0 0 220 100"
         role="img"
         aria-label=${soc === undefined
-          ? localize(this.hass, "card.soc_unknown")
-          : localize(this.hass, "card.soc", { soc: Math.round(soc) }) +
-            (level > 0 ? `, ${localize(this.hass, "card.charging")}` : "")}
+          ? this._t("card.soc_unknown")
+          : this._t("card.soc", { soc: Math.round(soc) }) +
+            (level > 0 ? `, ${this._t("card.charging")}` : "")}
       >
         <rect class="shell-bg" x="4" y="4" width="196" height="92" rx="12"></rect>
         ${segments}
@@ -274,30 +298,16 @@ class CarInfoCard extends LitElement {
     `;
   }
 
-  // Own generic SUV silhouette (side view, front on the right)
+  _silhouette() {
+    return SILHOUETTES[this._config.silhouette] || SILHOUETTES[DEFAULT_SILHOUETTE];
+  }
+
+  // Built-in vehicle drawing (see silhouettes.js)
   _renderCar() {
+    const name = SILHOUETTES[this._config.silhouette] ? this._config.silhouette : DEFAULT_SILHOUETTE;
     return html`
-      <svg class="car-svg" viewBox="0 0 400 150" aria-hidden="true">
-        <ellipse class="shadow" cx="200" cy="142" rx="180" ry="5"></ellipse>
-        <path
-          class="body"
-          d="M28 112 V88 Q28 72 44 68 L60 64 L70 36 Q74 26 86 26 H238 Q252 26 262 34
-             L300 62 L352 70 Q372 74 374 92 V112 Q374 120 366 120 H338
-             A33 33 0 0 0 272 120 H128 A33 33 0 0 0 62 120 H36 Q28 120 28 112 Z"
-        ></path>
-        <path
-          class="window"
-          d="M80 34 H164 V62 H70 Z M172 34 H236 Q246 34 254 40 L284 62 H172 Z"
-        ></path>
-        <path class="line" d="M168 64 V112 M262 66 Q266 90 262 112"></path>
-        <path class="line" d="M64 84 H370"></path>
-        <rect class="light front" x="356" y="78" width="16" height="7" rx="3"></rect>
-        <rect class="light rear" x="29" y="76" width="9" height="10" rx="3"></rect>
-        <path class="mirror" d="M286 56 l10 -2 l2 8 l-9 1 Z"></path>
-        <circle class="tyre" cx="305" cy="120" r="26"></circle>
-        <circle class="rim" cx="305" cy="120" r="14"></circle>
-        <circle class="tyre" cx="95" cy="120" r="26"></circle>
-        <circle class="rim" cx="95" cy="120" r="14"></circle>
+      <svg class="car-svg" viewBox="0 0 400 150" aria-hidden="true" data-silhouette=${name}>
+        ${SILHOUETTES[name].draw()}
       </svg>
     `;
   }
@@ -345,7 +355,7 @@ class CarInfoCard extends LitElement {
       }
       .layout {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr) minmax(0, 1fr);
         gap: 12px;
         align-items: center;
       }
@@ -383,19 +393,25 @@ class CarInfoCard extends LitElement {
         flex-direction: column;
         min-width: 0;
       }
+      /* Long labels and values wrap onto a second line, then get cut off */
+      .label,
+      .state {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+        overflow-wrap: break-word;
+      }
       .label {
         font-size: 0.75rem;
+        line-height: 1.25;
         color: var(--cic-secondary);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
       }
       .state {
         font-size: 1rem;
+        line-height: 1.25;
         font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
       }
       .center {
         display: flex;
@@ -451,6 +467,26 @@ class CarInfoCard extends LitElement {
         stroke: var(--cic-secondary);
         stroke-width: 3;
       }
+      .car-svg .spokes {
+        fill: none;
+        stroke: var(--cic-secondary);
+        stroke-width: 2;
+      }
+      .car-svg .hub {
+        fill: var(--cic-secondary);
+      }
+      .car-svg .strut {
+        fill: none;
+        stroke: var(--cic-secondary);
+        stroke-width: 4;
+        stroke-linecap: round;
+      }
+      .car-svg .helmet {
+        fill: var(--cic-secondary);
+        fill-opacity: 0.55;
+        stroke: var(--cic-secondary);
+        stroke-width: 2;
+      }
       .car-svg .shadow {
         fill: var(--cic-secondary);
         fill-opacity: 0.15;
@@ -481,8 +517,10 @@ class CarInfoCard extends LitElement {
       .cap {
         fill: var(--cic-text);
       }
+      /* Empty part of the battery: neutral, so no segment color shows through */
       .track {
-        fill-opacity: 0.15;
+        fill: var(--cic-track, #9e9e9e);
+        fill-opacity: 0.18;
       }
       .bolt path {
         fill: var(--cic-bolt-off);

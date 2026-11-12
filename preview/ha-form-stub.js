@@ -27,10 +27,21 @@ class StubHaForm extends HTMLElement {
     const val = this._data[s.name];
     const sel = s.selector || {};
     let input;
-    if (sel.entity) {
+    if (sel.device) {
+      input = document.createElement("select");
+      input.append(new Option("– none –", ""));
+      for (const d of Object.values(this._hass?.devices || {})) {
+        input.append(new Option(d.name_by_user || d.name, d.id));
+      }
+      input.value = val || "";
+      input.onchange = () => this._emit(s.name, input.value || undefined);
+    } else if (sel.entity) {
       input = document.createElement("select");
       const dom = sel.entity.filter?.domain;
-      const ids = Object.keys(this._hass?.states || {}).filter((id) => !dom || id.startsWith(dom + "."));
+      const include = sel.entity.include_entities;
+      const ids = Object.keys(this._hass?.states || {})
+        .filter((id) => !dom || id.startsWith(dom + "."))
+        .filter((id) => !include || include.includes(id));
       input.append(new Option("– none –", ""));
       ids.forEach((id) => input.append(new Option(id, id)));
       input.value = val || "";
@@ -47,6 +58,11 @@ class StubHaForm extends HTMLElement {
       input.step = sel.number.step ?? 1;
       input.value = val ?? "";
       input.onchange = () => this._emit(s.name, input.value === "" ? undefined : Number(input.value));
+    } else if (sel.select && !sel.select.multiple) {
+      input = document.createElement("select");
+      for (const o of sel.select.options) input.append(new Option(o.label, o.value));
+      input.value = val ?? "";
+      input.onchange = () => this._emit(s.name, input.value);
     } else if (sel.select?.multiple) {
       input = document.createElement("div");
       input.className = "multi";

@@ -37,7 +37,7 @@ try {
 
   // 2. Select the required entity
   await step("select battery level", async () => {
-    await field(1, "battery").selectOption(P + "battery_level");
+    await field(2, "battery").selectOption(P + "battery_level");
     assert.equal((await cfg()).entities.battery, P + "battery_level");
     assert.equal(await page.locator("car-info-card .soc").textContent(), "35 %");
   });
@@ -80,19 +80,19 @@ try {
 
   // 5. Charging: states and power levels
   await step("charging states", async () => {
-    await field(1, "charging_state").selectOption(P + "charging_state");
+    await field(2, "charging_state").selectOption(P + "charging_state");
     assert.equal("charging_states" in (await cfg()), false);
-    await forms.nth(2).locator("input[value=conserving]").check();
+    await forms.nth(3).locator("input[value=conserving]").check();
     assert.deepEqual((await cfg()).charging_states, ["charging", "conserving"]);
-    await forms.nth(2).locator("input[value=conserving]").uncheck();
+    await forms.nth(3).locator("input[value=conserving]").uncheck();
     assert.equal("charging_states" in (await cfg()), false);
   });
   await step("power levels", async () => {
-    await field(2, "power_2").fill("22");
-    await field(2, "power_2").dispatchEvent("change");
+    await field(3, "power_2").fill("22");
+    await field(3, "power_2").dispatchEvent("change");
     assert.deepEqual((await cfg()).power_levels, [3.7, 22, 50]);
-    await field(2, "power_2").fill("11");
-    await field(2, "power_2").dispatchEvent("change");
+    await field(3, "power_2").fill("11");
+    await field(3, "power_2").dispatchEvent("change");
     assert.equal("power_levels" in (await cfg()), false);
   });
 
@@ -104,26 +104,142 @@ try {
       el.dispatchEvent(new Event("change"));
     });
     assert.equal((await cfg()).colors[0], "#123456");
-    assert.equal(await page.locator("car-info-card rect.track").first().getAttribute("fill"), "#123456");
+    assert.equal(await page.locator("car-info-card rect.seg").first().getAttribute("fill"), "#123456");
     await editor.locator("button.text-button").click();
     assert.equal("colors" in (await cfg()), false);
   });
 
-  // 7. Hide the header
-  await step("header", async () => {
-    await field(0, "show_name").uncheck();
-    assert.equal((await cfg()).show_name, false);
-    await field(0, "show_name").check();
-    assert.equal("show_name" in (await cfg()), false);
+  // 6b. Battery colors: dark green only when fully charged
+  await step("battery colors", async () => {
+    const fills = () =>
+      page.locator("car-info-card rect.seg").evaluateAll((rs) => rs.map((r) => r.getAttribute("fill")));
+    for (const scenario of ["charging_dc", "nearly_full"]) {
+      await page.evaluate((sc) => window.render({ scenario: sc, theme: "dark", width: 560 }), scenario);
+      const f = await fills();
+      assert.ok(!f.includes("#2e7d32"), `${scenario}: no dark green below 100 %`);
+    }
+    // 85 %: last segment partly filled in light green
+    assert.equal((await fills())[4], "#7cb342");
+    await page.evaluate(() => window.render({ scenario: "full", theme: "light", width: 560 }));
+    assert.deepEqual(await fills(), Array(5).fill("#2e7d32"));
+    // older configs with 5 colors keep working and use the default full color
+    await page.evaluate(() => window.render({ scenario: "full", theme: "light", width: 560,
+      config: { colors: ["#111111", "#222222", "#333333", "#444444", "#555555"] } }));
+    assert.deepEqual(await fills(), Array(5).fill("#2e7d32"));
+    await page.evaluate(() => window.render({ scenario: "charging_ac", theme: "light", width: 560,
+      config: { colors: ["#111111", "#222222", "#333333", "#444444", "#555555", "#666666"] } }));
+    assert.deepEqual(await fills(), ["#111111", "#222222", "#333333", "#444444"]);
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light" }));
   });
 
-  // 8. German UI when Home Assistant is set to German
+  // 7. Show or hide name and licence plate separately
+  await step("name and plate", async () => {
+    const header = () => page.evaluate(() => {
+      const root = document.querySelector("car-info-card").shadowRoot;
+      return {
+        name: root.querySelector(".name")?.textContent.trim() ?? null,
+        plate: root.querySelector(".plate")?.textContent.trim() ?? null,
+      };
+    });
+    assert.deepEqual(await header(), { name: "My car", plate: "AB-CD 123" });
+
+    await field(0, "show_plate").uncheck();
+    assert.equal((await cfg()).show_plate, false);
+    assert.deepEqual(await header(), { name: "My car", plate: null });
+
+    await field(0, "show_name").uncheck();
+    assert.equal((await cfg()).show_name, false);
+    assert.equal(await page.locator("car-info-card .header").count(), 0);
+
+    await field(0, "show_plate").check();
+    assert.deepEqual(await header(), { name: "", plate: "AB-CD 123" });
+    assert.equal("show_plate" in (await cfg()), false);
+
+    await field(0, "show_name").check();
+    assert.equal("show_name" in (await cfg()), false);
+    assert.deepEqual(await header(), { name: "My car", plate: "AB-CD 123" });
+  });
+
+  // 7b. Built-in vehicle drawings
+  await step("vehicle", async () => {
+    const shown = () => page.locator("car-info-card svg.car-svg").getAttribute("data-silhouette");
+    assert.equal(await shown(), "suv");
+    const labels = await field(0, "silhouette").locator("option")
+      .evaluateAll((os) => os.map((o) => o.textContent));
+    assert.deepEqual(labels, ["SUV", "Sedan", "Hatchback", "Van", "Formula race car", "Tractor", "Vintage car"]);
+    await field(0, "silhouette").selectOption("tractor");
+    assert.equal((await cfg()).silhouette, "tractor");
+    assert.equal(await shown(), "tractor");
+    await field(0, "silhouette").selectOption("suv");
+    assert.equal("silhouette" in (await cfg()), false);
+    // a custom image replaces the drawing
+    await field(0, "image").fill("/local/car.png");
+    await field(0, "image").dispatchEvent("change");
+    assert.equal(await page.locator("car-info-card .car img").getAttribute("src"), "/local/car.png");
+    await field(0, "image").fill("");
+    await field(0, "image").dispatchEvent("change");
+    assert.equal("image" in (await cfg()), false);
+  });
+
+  // 8. Device filter: only entities of the selected device are offered
+  await step("device filter", async () => {
+    const options = (form, name) =>
+      field(form, name).locator("option").evaluateAll((os) => os.map((o) => o.value).filter(Boolean));
+    const addOptions = () => editor.locator(".add ha-form label[data-name=entity] select option")
+      .evaluateAll((os) => os.map((o) => o.value).filter(Boolean));
+    // forms: 0 general, 1 device, 2 entities, 3 charging
+    await field(1, "device").selectOption("");
+    assert.ok((await options(2, "charging_power")).includes("sensor.wallbox_power"));
+    assert.ok((await addOptions()).includes("sensor.outdoor_temperature"));
+    assert.equal("device" in (await cfg()), false);
+
+    await field(1, "device").selectOption("dev_car");
+    assert.equal((await cfg()).device, "dev_car");
+    const power = await options(2, "charging_power");
+    assert.ok(power.includes(P + "charging_power"));
+    assert.ok(!power.includes("sensor.wallbox_power"));
+    const add = await addOptions();
+    assert.ok(add.includes(P + "odometer"));
+    assert.ok(!add.includes("sensor.outdoor_temperature"));
+
+    await field(1, "device").selectOption("dev_wallbox");
+    const battery = await options(2, "battery");
+    // the already configured battery entity stays selectable
+    assert.ok(battery.includes(P + "battery_level"));
+    assert.ok(battery.includes("sensor.wallbox_power"));
+    assert.ok(!battery.includes(P + "range"));
+  });
+
+  // 8b. Language option overrides the Home Assistant language
+  await step("language option", async () => {
+    const options = await field(0, "language").locator("option")
+      .evaluateAll((os) => os.map((o) => [o.value, o.textContent]));
+    assert.deepEqual(options, [["auto", "Automatic (Home Assistant language)"], ["en", "English"], ["de", "Deutsch"]]);
+    await field(0, "language").selectOption("de");
+    assert.equal((await cfg()).language, "de");
+    assert.equal(await editor.locator("h3").first().textContent(), "Allgemein");
+    await field(0, "language").selectOption("auto");
+    assert.equal("language" in (await cfg()), false);
+    assert.equal(await editor.locator("h3").first().textContent(), "General");
+  });
+
+  // 9. German UI when Home Assistant is set to German
   await step("German translation", async () => {
     await page.evaluate(() =>
       window.renderEditor({ scenario: "unplugged", theme: "light", language: "de" })
     );
     assert.equal(await editor.locator("h3").first().textContent(), "Allgemein");
     assert.equal(await editor.locator(".value-row button").first().getAttribute("title"), "Nach oben");
+    // a fixed language wins over the Home Assistant language
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light", language: "de",
+      config: { entities: {}, language: "en" } }));
+    assert.equal(await editor.locator("h3").first().textContent(), "General");
+    assert.match(await page.locator("car-info-card .hint").textContent(), /battery level/);
+    // regional variants use the base language, unknown languages fall back to English
+    for (const [lang, heading] of [["de-AT", "Allgemein"], ["fr", "General"]]) {
+      await page.evaluate((l) => window.renderEditor({ scenario: "unplugged", theme: "light", language: l }), lang);
+      assert.equal(await editor.locator("h3").first().textContent(), heading);
+    }
   });
 
   assert.deepEqual(errors, [], "Page errors: " + errors.join("; "));

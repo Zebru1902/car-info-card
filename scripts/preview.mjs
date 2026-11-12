@@ -12,6 +12,7 @@ const shots = [
   { file: "unplugged-light", scenario: "unplugged", theme: "light", width: 560 },
   { file: "charging-ac-light", scenario: "charging_ac", theme: "light", width: 560 },
   { file: "charging-dc-dark", scenario: "charging_dc", theme: "dark", width: 560 },
+  { file: "full-light", scenario: "full", theme: "light", width: 560 },
   { file: "slow-narrow-dark", scenario: "slow", theme: "dark", width: 360 },
 ];
 
@@ -28,6 +29,14 @@ for (const s of shots) {
   const out = join(root, "docs/screenshots", `${s.file}.png`);
   await page.locator("#wrap").screenshot({ path: out });
   console.log("saved:", out);
+}
+for (const theme of ["light", "dark"]) {
+  await page.evaluate((t) => window.renderGallery({ theme: t,
+    names: ["suv", "sedan", "hatchback", "van", "race", "tractor", "vintage"] }), theme);
+  await page.waitForTimeout(300);
+  const file = join(root, "docs/screenshots", `vehicles-${theme}.png`);
+  await page.locator("#wrap").screenshot({ path: file });
+  console.log("saved:", file);
 }
 await page.evaluate(() => window.renderEditor({ scenario: "charging_ac", theme: "light" }));
 await page.waitForTimeout(300);
