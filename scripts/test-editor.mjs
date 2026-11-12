@@ -132,12 +132,32 @@ try {
     await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light" }));
   });
 
-  // 7. Hide the header
-  await step("header", async () => {
+  // 7. Show or hide name and licence plate separately
+  await step("name and plate", async () => {
+    const header = () => page.evaluate(() => {
+      const root = document.querySelector("car-info-card").shadowRoot;
+      return {
+        name: root.querySelector(".name")?.textContent.trim() ?? null,
+        plate: root.querySelector(".plate")?.textContent.trim() ?? null,
+      };
+    });
+    assert.deepEqual(await header(), { name: "My car", plate: "AB-CD 123" });
+
+    await field(0, "show_plate").uncheck();
+    assert.equal((await cfg()).show_plate, false);
+    assert.deepEqual(await header(), { name: "My car", plate: null });
+
     await field(0, "show_name").uncheck();
     assert.equal((await cfg()).show_name, false);
+    assert.equal(await page.locator("car-info-card .header").count(), 0);
+
+    await field(0, "show_plate").check();
+    assert.deepEqual(await header(), { name: "", plate: "AB-CD 123" });
+    assert.equal("show_plate" in (await cfg()), false);
+
     await field(0, "show_name").check();
     assert.equal("show_name" in (await cfg()), false);
+    assert.deepEqual(await header(), { name: "My car", plate: "AB-CD 123" });
   });
 
   // 8. Device filter: only entities of the selected device are offered

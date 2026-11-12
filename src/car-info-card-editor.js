@@ -24,6 +24,7 @@ const KNOWN_CHARGING_STATES = [
 const GENERAL_SCHEMA = [
   { name: "name", selector: { text: {} } },
   { name: "show_name", selector: { boolean: {} } },
+  { name: "show_plate", selector: { boolean: {} } },
   { name: "image", selector: { text: {} } },
 ];
 
@@ -108,6 +109,7 @@ class CarInfoCardEditor extends LitElement {
     // Do not write empty or default values to the config
     for (const key of ["name", "image", "device"]) if (isEmpty(out[key])) delete out[key];
     if (out.show_name === true) delete out.show_name;
+    if (out.show_plate === true) delete out.show_plate;
     const entities = {};
     for (const [k, v] of Object.entries(out.entities || {})) if (!isEmpty(v)) entities[k] = v;
     out.entities = entities;
@@ -136,7 +138,11 @@ class CarInfoCardEditor extends LitElement {
   _generalChanged(ev) {
     ev.stopPropagation();
     const v = ev.detail.value;
-    this._commit({ ...this._config, name: v.name, show_name: v.show_name, image: v.image });
+    this._commit({ ...this._config, name: v.name,
+      show_name: v.show_name,
+      show_plate: v.show_plate,
+      image: v.image,
+    });
   }
 
   _deviceChanged(ev) {
@@ -292,7 +298,12 @@ class CarInfoCardEditor extends LitElement {
         <h3>${this._t("editor.general")}</h3>
         ${this._form(
           GENERAL_SCHEMA,
-          { name: cfg.name || "", show_name: cfg.show_name !== false, image: cfg.image || "" },
+          {
+            name: cfg.name || "",
+            show_name: cfg.show_name !== false,
+            show_plate: cfg.show_plate !== false,
+            image: cfg.image || "",
+          },
           this._generalChanged
         )}
       </div>

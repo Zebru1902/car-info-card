@@ -58,6 +58,7 @@ class CarInfoCard extends LitElement {
     }
     this._config = {
       show_name: true,
+      show_plate: true,
       values: [],
       ...config,
       entities: { ...(config.entities || {}) },
@@ -152,15 +153,15 @@ class CarInfoCard extends LitElement {
     const left = values.slice(0, half);
     const right = values.slice(half);
     const plate = this._stateObj(cfg.entities.plate);
+    const showName = cfg.show_name !== false && !!cfg.name;
+    const showPlate = cfg.show_plate !== false && this._isAvailable(plate);
 
     return html`
       <ha-card>
-        ${cfg.show_name !== false && (cfg.name || plate)
+        ${showName || showPlate
           ? html`<div class="header">
-              <span class="name">${cfg.name || ""}</span>
-              ${this._isAvailable(plate)
-                ? html`<span class="plate">${plate.state}</span>`
-                : nothing}
+              <span class="name">${showName ? cfg.name : ""}</span>
+              ${showPlate ? html`<span class="plate">${plate.state}</span>` : nothing}
             </div>`
           : nothing}
         <div class="layout ${values.length ? "" : "no-values"}">

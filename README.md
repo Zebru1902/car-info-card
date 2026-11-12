@@ -63,7 +63,8 @@ values:
 | Option | Default | Description |
 |---|---|---|
 | `name` | – | Title |
-| `show_name` | `true` | Show the header (name, licence plate) |
+| `show_name` | `true` | Show the name in the header |
+| `show_plate` | `true` | Show the licence plate in the header (needs `entities.plate`) |
 | `device` | – | Device ID; only used by the editor to show just this device's entities in the pickers |
 | `entities.battery` | – | State of charge in % (required) |
 | `entities.charging_power` | – | Charging power; W, kW and MW are converted |
