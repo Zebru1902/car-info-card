@@ -6,7 +6,7 @@ import {
   DEFAULT_POWER_LEVELS,
   fireEvent,
 } from "./const.js";
-import { localize, browserLanguageString } from "./localize.js";
+import { localize, browserLanguageString, LANGUAGES } from "./localize.js";
 import { SILHOUETTES, SILHOUETTE_NAMES, DEFAULT_SILHOUETTE } from "./silhouettes.js";
 import "./car-info-card-editor.js";
 
@@ -48,6 +48,9 @@ class CarInfoCard extends LitElement {
     if (config.entities !== undefined && typeof config.entities !== "object") {
       throw new Error("entities must be an object.");
     }
+    if (config.language && config.language !== "auto" && !LANGUAGES.includes(config.language)) {
+      throw new Error(`language must be auto or one of: ${LANGUAGES.join(", ")}.`);
+    }
     if (config.silhouette && !SILHOUETTES[config.silhouette]) {
       throw new Error(`silhouette must be one of: ${SILHOUETTE_NAMES.join(", ")}.`);
     }
@@ -70,6 +73,10 @@ class CarInfoCard extends LitElement {
         typeof v === "string" ? { entity: v } : v
       ),
     };
+  }
+
+  _t(key, vars) {
+    return localize(this.hass, key, vars, this._config && this._config.language);
   }
 
   getCardSize() {
@@ -146,7 +153,7 @@ class CarInfoCard extends LitElement {
     if (!cfg.entities.battery) {
       return html`<ha-card>
         <div class="hint">
-          ${localize(this.hass, "card.hint")}
+          ${this._t("card.hint")}
         </div>
       </ha-card>`;
     }
@@ -235,7 +242,7 @@ class CarInfoCard extends LitElement {
           : nothing}
         <div class="text">
           <span class="label">${name}</span>
-          <span class="state">${stateObj ? this._formatState(stateObj) : localize(this.hass, "card.not_found")}</span>
+          <span class="state">${stateObj ? this._formatState(stateObj) : this._t("card.not_found")}</span>
         </div>
       </div>
     `;
@@ -273,9 +280,9 @@ class CarInfoCard extends LitElement {
         viewBox="0 0 220 100"
         role="img"
         aria-label=${soc === undefined
-          ? localize(this.hass, "card.soc_unknown")
-          : localize(this.hass, "card.soc", { soc: Math.round(soc) }) +
-            (level > 0 ? `, ${localize(this.hass, "card.charging")}` : "")}
+          ? this._t("card.soc_unknown")
+          : this._t("card.soc", { soc: Math.round(soc) }) +
+            (level > 0 ? `, ${this._t("card.charging")}` : "")}
       >
         <rect class="shell-bg" x="4" y="4" width="196" height="92" rx="12"></rect>
         ${segments}

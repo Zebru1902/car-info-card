@@ -210,6 +210,19 @@ try {
     assert.ok(!battery.includes(P + "range"));
   });
 
+  // 8b. Language option overrides the Home Assistant language
+  await step("language option", async () => {
+    const options = await field(0, "language").locator("option")
+      .evaluateAll((os) => os.map((o) => [o.value, o.textContent]));
+    assert.deepEqual(options, [["auto", "Automatic (Home Assistant language)"], ["en", "English"], ["de", "Deutsch"]]);
+    await field(0, "language").selectOption("de");
+    assert.equal((await cfg()).language, "de");
+    assert.equal(await editor.locator("h3").first().textContent(), "Allgemein");
+    await field(0, "language").selectOption("auto");
+    assert.equal("language" in (await cfg()), false);
+    assert.equal(await editor.locator("h3").first().textContent(), "General");
+  });
+
   // 9. German UI when Home Assistant is set to German
   await step("German translation", async () => {
     await page.evaluate(() =>
@@ -217,6 +230,16 @@ try {
     );
     assert.equal(await editor.locator("h3").first().textContent(), "Allgemein");
     assert.equal(await editor.locator(".value-row button").first().getAttribute("title"), "Nach oben");
+    // a fixed language wins over the Home Assistant language
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light", language: "de",
+      config: { entities: {}, language: "en" } }));
+    assert.equal(await editor.locator("h3").first().textContent(), "General");
+    assert.match(await page.locator("car-info-card .hint").textContent(), /battery level/);
+    // regional variants use the base language, unknown languages fall back to English
+    for (const [lang, heading] of [["de-AT", "Allgemein"], ["fr", "General"]]) {
+      await page.evaluate((l) => window.renderEditor({ scenario: "unplugged", theme: "light", language: l }), lang);
+      assert.equal(await editor.locator("h3").first().textContent(), heading);
+    }
   });
 
   assert.deepEqual(errors, [], "Page errors: " + errors.join("; "));

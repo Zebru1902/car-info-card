@@ -18,7 +18,7 @@ A Home Assistant dashboard card for electric cars: a generic SUV silhouette with
 - 7 built-in vehicles (SUV, sedan, hatchback, van, and for fun a formula race car, a tractor and a vintage car) or your own image
 - Visual card editor; pick your car's device to see only its entities
 - Light and dark themes, respects "reduced motion"
-- User interface in English and German (follows the Home Assistant language)
+- User interface in English and German: follows the Home Assistant language or a fixed `language`; more languages via translation files
 
 <!-- ha-marketplace:exclude-start -->
 ## Installation
@@ -81,6 +81,7 @@ values:
 | `colors` | red, orange, yellow, yellow-green, light green, dark green | 5 segment colors (0–20 % … 80–100 %) plus an optional 6th color used for all segments when fully charged |
 | `silhouette` | `suv` | Built-in vehicle: `suv`, `sedan`, `hatchback`, `van`, `race`, `tractor`, `vintage` |
 | `image` | – | Own image instead of the built-in vehicle, e.g. `/local/car.png` |
+| `language` | `auto` | Language of the card's texts: `auto` (Home Assistant language), `en`, `de` |
 | `values` | `[]` | List of `entity` (+ optional `name`, `icon`); first half on the left, second half on the right |
 
 ![Card editor (preview)](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/editor-light.png)
@@ -98,7 +99,11 @@ npm run preview   # build + Playwright screenshots in docs/screenshots
 npm test          # build + editor test in the browser (Playwright)
 ```
 
-`preview/index.html` simulates the `hass` object with example values. UI strings live in `src/localize.js`; add a language there to translate the card.
+`preview/index.html` simulates the `hass` object with example values.
+
+## Translations
+
+The card's texts live in `src/translations/<language>.json`. Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

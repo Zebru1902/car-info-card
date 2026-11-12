@@ -6,7 +6,7 @@ import {
   DEFAULT_POWER_LEVELS,
   fireEvent,
 } from "./const.js";
-import { localize } from "./localize.js";
+import { localize, LANGUAGES, TRANSLATIONS } from "./localize.js";
 import { SILHOUETTE_NAMES, DEFAULT_SILHOUETTE } from "./silhouettes.js";
 
 const COLOR_NAMES = ["0–20 %", "20–40 %", "40–60 %", "60–80 %", "80–100 %"];
@@ -28,6 +28,7 @@ const GENERAL_SCHEMA = [
   { name: "show_plate", selector: { boolean: {} } },
   { name: "silhouette", selector: { select: { mode: "dropdown", options: [] } } },
   { name: "image", selector: { text: {} } },
+  { name: "language", selector: { select: { mode: "dropdown", options: [] } } },
 ];
 
 // ⚠️ NOT VERIFIED in HA 2026.11: device selector with an entity filter
@@ -111,6 +112,7 @@ class CarInfoCardEditor extends LitElement {
     // Do not write empty or default values to the config
     for (const key of ["name", "image", "device"]) if (isEmpty(out[key])) delete out[key];
     if (isEmpty(out.silhouette) || out.silhouette === DEFAULT_SILHOUETTE) delete out.silhouette;
+    if (isEmpty(out.language) || out.language === "auto") delete out.language;
     if (out.show_name === true) delete out.show_name;
     if (out.show_plate === true) delete out.show_plate;
     const entities = {};
@@ -146,6 +148,7 @@ class CarInfoCardEditor extends LitElement {
       show_plate: v.show_plate,
       silhouette: v.silhouette,
       image: v.image,
+      language: v.language,
     });
   }
 
@@ -215,7 +218,7 @@ class CarInfoCardEditor extends LitElement {
   // ---------- Rendering ----------
 
   _t(key, vars) {
-    return localize(this.hass, key, vars);
+    return localize(this.hass, key, vars, this._config && this._config.language);
   }
 
   _label = (schema) => {
@@ -250,8 +253,16 @@ class CarInfoCardEditor extends LitElement {
 
   _generalSchema() {
     const options = SILHOUETTE_NAMES.map((n) => ({ value: n, label: this._t(`silhouette.${n}`) || n }));
+    const languages = [
+      { value: "auto", label: this._t("language.auto") },
+      ...LANGUAGES.map((l) => ({ value: l, label: TRANSLATIONS[l]["language.name"] })),
+    ];
     return GENERAL_SCHEMA.map((s) =>
-      s.name === "silhouette" ? { ...s, selector: { select: { mode: "dropdown", options } } } : s
+      s.name === "silhouette"
+        ? { ...s, selector: { select: { mode: "dropdown", options } } }
+        : s.name === "language"
+        ? { ...s, selector: { select: { mode: "dropdown", options: languages } } }
+        : s
     );
   }
 
@@ -315,6 +326,7 @@ class CarInfoCardEditor extends LitElement {
             show_plate: cfg.show_plate !== false,
             silhouette: cfg.silhouette || DEFAULT_SILHOUETTE,
             image: cfg.image || "",
+            language: cfg.language || "auto",
           },
           this._generalChanged
         )}

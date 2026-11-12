@@ -9,4 +9,4 @@
 - Configurable values left and right of the car
 - Card editor (entities, values, charging levels, colors); optional device selection filters the entity pickers
 - Name and licence plate can be shown or hidden separately
-- User interface in English and German
+- User interface in English and German, optional fixed `language`; translation files in `src/translations/` for contributions
