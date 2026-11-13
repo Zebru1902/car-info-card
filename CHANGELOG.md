@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2 – 2026-11-13
+
+- README and Marketplace page: screenshot gallery with electric car, plug-in hybrid and combustion car
+- README: test status updated (combustion car tested in a real Home Assistant)
+- README and Marketplace page: section "Tested with" listing the integrations the card was tested with
+
 ## 0.4.1 – 2026-11-13
 
 - README and Marketplace page: notice that the card is developed with AI assistance

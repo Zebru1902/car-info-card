@@ -46,5 +46,7 @@ Checked on 2026-11-11 at https://contributors.home-assistant.io/marketplace/ (re
 3. Test in a real Home Assistant during a charging session.
 4. README, `hacs.json`, release, catalog entry. (README, `hacs.json`, workflows ✅; release and catalog open)
 
-## Status (version 0.2.0)
-- Open: test in a real Home Assistant while charging (value and unit of the time to full, editor behaviour), first release, catalog entry.
+## Status (version 0.4.2)
+- Released on GitHub, installable as a custom repository via the `marketplace_repository` My link.
+- Tested in a real Home Assistant: one electric car (unplugged; editor, device scan) and one combustion car of another integration (all entities detected automatically).
+- Open: test while charging (bolt levels, value and unit of the time to full), a plug-in hybrid in a real Home Assistant, catalog entry (pull request to `hacs/default`).

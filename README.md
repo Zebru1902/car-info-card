@@ -5,7 +5,7 @@
 
 A Home Assistant dashboard card for cars – electric, plug-in hybrid or combustion: a generic car silhouette with a battery or fuel gauge in the middle. For electric cars the battery is split into 5 segments of 20 % each (red, orange, yellow, yellow-green, light green; all dark green when full), with a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its pulse, glow and size follow the charging power. Any values you like (odometer, range, charging power, time to full, target temperature, …) are shown around the car.
 
-> Status: **0.4.1**, early version. Tested in a real Home Assistant with one electric car integration; combustion cars and hybrids only with example data so far.
+> Status: **0.4.2**, early version. Tested in a real Home Assistant with one electric car and one combustion car (two different integrations, all entities detected automatically); plug-in hybrids only with example data so far.
 
 | Electric car, charging | Plug-in hybrid | Combustion car |
 |:---:|:---:|:---:|
@@ -25,6 +25,15 @@ A Home Assistant dashboard card for cars – electric, plug-in hybrid or combust
 - Visual card editor: pick your car's device and the editor scans it, fills in the main entities and activates every standard value it finds; more sensors of the device can be added with one tick
 - Light and dark themes, respects "reduced motion"
 - User interface in English and German: follows the Home Assistant language or a fixed `language`; more languages via translation files
+
+## Tested with
+
+| Integration | Drive | Result |
+|---|---|---|
+| [Škoda](https://www.home-assistant.io/integrations/skoda) (built-in Home Assistant integration) | Electric | Works; tested unplugged, charging not tested yet |
+| [VW Group Connect](https://github.com/its-me-prash/vwgroup-connect-ha) (Marketplace) | Combustion | Works; all entities detected automatically |
+
+Using the card with another integration? Please tell us in an [issue](https://github.com/Zebru1902/car-info-card/issues) whether it worked and which entities had to be chosen by hand, so the list and the automatic detection can grow.
 
 <!-- ha-marketplace:exclude-start -->
 ## Installation
