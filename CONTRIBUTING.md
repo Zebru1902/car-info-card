@@ -1,5 +1,7 @@
 # Contributing
 
+This card is developed with AI assistance (Claude Code); the maintainer reviews and tests every change. Contributions written by hand or with AI tools are welcome alike.
+
 ## Add or improve a translation
 
 The card's own texts (editor labels, hints, status) live in one JSON file per language in [`src/translations/`](src/translations/). Entity values and units are formatted by Home Assistant itself and need no translation here.
