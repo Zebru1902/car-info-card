@@ -73,3 +73,53 @@ export function suggestEntity(hass, type, entityIds, exclude = []) {
   const preferred = rule.prefer ? candidates.filter(rule.prefer) : [];
   return (preferred[0] || candidates[0]).entity_id;
 }
+
+// Entity IDs that belong to a device (entity registry), undefined if unknown
+export function entitiesOfDevice(hass, device) {
+  if (!device || !hass || !hass.entities) return undefined;
+  const ids = Object.values(hass.entities)
+    .filter((e) => e.device_id === device)
+    .map((e) => e.entity_id);
+  return ids.length ? ids : undefined;
+}
+
+// The device that most likely is the car: it needs a battery level and an
+// odometer or a range. A robot vacuum or a phone has a battery and may even
+// report "charging", but has neither of the two.
+export function findCarDevice(hass) {
+  if (!hass || !hass.devices || !hass.entities) return undefined;
+  let best;
+  let bestScore = 0;
+  for (const device of Object.keys(hass.devices)) {
+    const ids = entitiesOfDevice(hass, device);
+    if (!ids || !suggestEntity(hass, "battery", ids)) continue;
+    const has = (type) => (suggestEntity(hass, type, ids) ? 1 : 0);
+    if (!has("odometer") && !has("range")) continue;
+    const score =
+      2 * has("odometer") + 2 * has("range") + has("charging_power_value") + has("charging_state");
+    if (score > bestScore) {
+      best = device;
+      bestScore = score;
+    }
+  }
+  return best;
+}
+
+// Starting configuration for a new card: the car device with its main entities
+export function suggestSetup(hass) {
+  const device = findCarDevice(hass);
+  if (!device) return { entities: {}, values: [] };
+  const ids = entitiesOfDevice(hass, device);
+  const entities = {};
+  for (const key of ["battery", "charging_power", "charging_state"]) {
+    const found = suggestEntity(hass, key, ids);
+    if (found) entities[key] = found;
+  }
+  const values = [];
+  for (const type of ["odometer", "range"]) {
+    const entity = suggestEntity(hass, type, ids);
+    if (entity) values.push({ type, entity });
+  }
+  const d = hass.devices[device];
+  return { name: d.name_by_user || d.name, device, entities, values };
+}

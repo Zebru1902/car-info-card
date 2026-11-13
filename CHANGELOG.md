@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2 – 2026-11-13
+
+- New cards start with the device that looks like a car (battery level plus odometer or range) and its main entities, instead of the first battery sensor in the system (e.g. of a robot vacuum)
+- Selecting a device in the editor also replaces entities of other devices in the main fields and standard values; empty fields are filled as before
+- Values are arranged by meaning: general values (odometer, range, target temperature) on the left, charging values on the right; other values fill up the shorter side
+- Editor: ⇄ moves a value to the other side (option `position: left | right`)
+- Narrow cards: both value columns start at the top
+
 ## 0.2.1 – 2026-11-12
 
 - The card explains when the battery level entity is missing or does not report a number (e.g. when the charging state was selected by mistake)

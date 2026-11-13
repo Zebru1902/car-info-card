@@ -62,8 +62,10 @@ try {
       [P + "odometer", P + "range", P + "charging_type"]);
     assert.equal(await page.locator("car-info-card .value").count(), 3);
     // without an own label, the device name is left out of the entity name
-    assert.deepEqual(await page.locator("car-info-card .value .label").allTextContents(),
-      ["Odometer", "Range", "Charging type"]);
+    // values without a type fill up the shorter side: left, right, left
+    assert.deepEqual(await page.locator("car-info-card .values.left .label").allTextContents(),
+      ["Odometer", "Charging type"]);
+    assert.deepEqual(await page.locator("car-info-card .values.right .label").allTextContents(), ["Range"]);
   });
   await step("move value", async () => {
     await editor.locator(".value-row").nth(2).locator("button[title='Move up']").click();
@@ -256,8 +258,21 @@ try {
       { type: "charging_type", entity: P + "charging_type" },
       { type: "target_temperature", entity: P + "target_temperature" },
     ]);
-    assert.deepEqual(await page.locator("car-info-card .value .label").allTextContents(),
-      ["Odometer", "Range", "Time to full", "Charging state", "Charging type", "Target temperature"]);
+    // general values left, charging values right
+    const side = (cls) => page.locator(`car-info-card .values.${cls} .label`).allTextContents();
+    assert.deepEqual(await side("left"), ["Odometer", "Range", "Target temperature"]);
+    assert.deepEqual(await side("right"), ["Time to full", "Charging state", "Charging type"]);
+    assert.deepEqual(await editor.locator(".value-row .badge").allTextContents(),
+      ["left · 1", "left · 2", "right · 3", "right · 4", "right · 5", "left · 6"]);
+
+    // ⇄ moves a value to the other side and back
+    const swap = (i) => editor.locator(".value-row").nth(i).locator("button[title='Other side']").click();
+    await swap(0);
+    assert.equal((await cfg()).values[0].position, "right");
+    assert.deepEqual(await side("right"), ["Odometer", "Time to full", "Charging state", "Charging type"]);
+    await swap(0);
+    assert.equal("position" in (await cfg()).values[0], false);
+    assert.deepEqual(await side("left"), ["Odometer", "Range", "Target temperature"]);
 
     await tick("range").uncheck();
     assert.ok(!(await cfg()).values.some((v) => v.type === "range"));
@@ -270,6 +285,37 @@ try {
     const odo = (await cfg()).values.find((v) => v.type === "odometer");
     assert.deepEqual(odo, { type: "odometer", entity: "" });
     assert.equal(await page.locator("car-info-card .value").count(), 4);
+  });
+
+  // 8c. New card and device change never keep a battery of another device
+  await step("car detection", async () => {
+    assert.deepEqual(await page.evaluate(() => window.stubConfig()), {
+      name: "My car",
+      device: "dev_car",
+      entities: {
+        battery: P + "battery_level",
+        charging_power: P + "charging_power",
+        charging_state: P + "charging_state",
+      },
+      values: [
+        { type: "odometer", entity: P + "odometer" },
+        { type: "range", entity: P + "range" },
+      ],
+    });
+    // the case from the real test: a robot vacuum battery was preselected
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light",
+      config: { entities: { battery: "sensor.robot_vacuum_battery", charging_power: "sensor.wallbox_power" },
+        values: [{ type: "odometer", entity: "sensor.robot_vacuum_battery" }, { entity: "sensor.outdoor_temperature" }] } }));
+    await field(1, "device").selectOption("dev_car");
+    const c = await cfg();
+    assert.equal(c.entities.battery, P + "battery_level");
+    assert.equal(c.entities.charging_power, P + "charging_power");
+    assert.equal(c.entities.charging_state, P + "charging_state");
+    // standard values follow the device, own values stay
+    assert.deepEqual(c.values, [
+      { type: "odometer", entity: P + "odometer" },
+      { entity: "sensor.outdoor_temperature" },
+    ]);
   });
 
   // 8b. Language option overrides the Home Assistant language
