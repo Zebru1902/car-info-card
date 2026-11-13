@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1 – 2026-11-13
+
+- README and Marketplace page: notice that the card is developed with AI assistance
+
 ## 0.4.0 – 2026-11-13
 
 - Combustion cars: fuel gauge in the battery style with a fuel pump instead of the bolt; no charging status
@@ -8,7 +12,6 @@
 - New entity `entities.fuel`; fuel levels in litres or gallons need `fuel_capacity` (tank size)
 - Device scan and standard values per drive: fuel range, total range, next service, oil level, outside temperature
 - Switching to another device clears main fields that the new device cannot fill
-- README: notice that the card is developed with AI assistance
 
 ## 0.3.0 – 2026-11-13
 
