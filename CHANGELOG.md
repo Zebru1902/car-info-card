@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1 – 2026-11-13
+
+- README and Marketplace page: notice that the card is developed with AI assistance
+
 ## 0.4.0 – 2026-11-13
 
 - Combustion cars: fuel gauge in the battery style with a fuel pump instead of the bolt; no charging status
