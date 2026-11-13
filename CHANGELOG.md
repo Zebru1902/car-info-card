@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 – 2026-11-13
+
+- Editor scans the selected device and activates every standard value it offers (odometer, range, charging power, time to full, charging state, charging type, target temperature); new cards start the same way
+- Editor: list "More sensors of this device" to add any other sensor with one tick
+- Detection knows more terms used by other vehicle integrations (⚠️ only tested with example data and one real integration)
+- Charging state can also be an on/off sensor (`binary_sensor`, "on" = charging)
+
 ## 0.2.2 – 2026-11-13
 
 - New cards start with the device that looks like a car (battery level plus odometer or range) and its main entities, instead of the first battery sensor in the system (e.g. of a robot vacuum)

@@ -17,6 +17,7 @@
   "editor.left": "links",
   "editor.move_down": "Nach unten",
   "editor.move_up": "Nach oben",
+  "editor.other_sensors": "Weitere Sensoren dieses Geräts",
   "editor.quick_note": "Wert anhaken, um ihn hinzuzufügen. Die passende Entität des gewählten Geräts wird automatisch eingetragen; wird keine gefunden, in der neuen Zeile eine wählen.",
   "editor.remove": "Entfernen",
   "editor.reset_colors": "Standardfarben",

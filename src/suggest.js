@@ -11,8 +11,9 @@ const has = (s, re) => re.test(words(s));
 export const PURPOSES = {
   battery: {
     match: (s) =>
-      (dc(s) === "battery" || (unit(s) === "%" && has(s, /batter|soc|state_of_charge|ladestand/))) &&
-      !has(s, /limit|target|ziel|min|max/),
+      (dc(s) === "battery" ||
+        (unit(s) === "%" && has(s, /batter|akku|soc\b|state_of_charge|charge_level|ladestand/))) &&
+      !has(s, /limit|target|ziel|min|max|12.?v|aux|starter/),
     prefer: (s) => dc(s) === "battery",
   },
   charging_power: {
@@ -23,28 +24,36 @@ export const PURPOSES = {
     match: (s) =>
       Array.isArray(s.attributes.options)
         ? s.attributes.options.includes("charging")
-        : has(s, /charging_state|charging_status|ladezustand|ladestatus/) && dc(s) !== "battery" && !has(s, /batter/),
+        : dc(s) === "battery_charging" ||
+          (has(s, /charging_state|charging_status|charge_state|ladezustand|ladestatus/) &&
+            dc(s) !== "battery" &&
+            !has(s, /batter/)),
     prefer: (s) => Array.isArray(s.attributes.options),
   },
   odometer: {
-    match: (s) => has(s, /odometer|mileage|kilometerstand|kilometer_stand|km_stand|tachostand/),
+    match: (s) =>
+      has(s, /odometer|mileage|total.?distance|distance.?total|kilometerstand|kilometer_stand|km_stand|gesamtkilometer|tachostand/),
   },
   range: {
-    match: (s) => has(s, /range|reichweite/) && (dc(s) === "distance" || ["km", "mi"].includes(unit(s))),
-    prefer: (s) => has(s, /electric|elektr|ev_/),
+    match: (s) =>
+      has(s, /range|reichweite|autonomy|distance.?to.?empty|\bdte\b/) &&
+      (dc(s) === "distance" || ["km", "mi"].includes(unit(s))),
+    prefer: (s) => has(s, /electric|elektr|\bev\b|ev_|battery|batterie/),
   },
   charging_power_value: {
     match: (s) => (dc(s) === "power" || ["W", "kW"].includes(unit(s))) && has(s, /charg|lade/),
   },
   time_to_full: {
-    match: (s) => has(s, /time.?to.?full|remaining.?charg|charging.?time|vollladung|ladedauer|restladezeit/),
+    match: (s) =>
+      has(s, /time.?to.?full|time.?until.?full|minutes.?to.?full|remaining.?charg|charg\w*.?time.?remaining|charging.?time|charge.?complete|charging.?end|vollladung|ladedauer|restladezeit|ladeende/),
   },
   charging_type: {
-    match: (s) => has(s, /charging.?type|ladetyp|ladeart/),
+    match: (s) => has(s, /charging.?type|charge.?type|charger.?type|plug.?type|ladetyp|ladeart/),
   },
   target_temperature: {
     match: (s) =>
-      (dc(s) === "temperature" || ["°C", "°F"].includes(unit(s))) && has(s, /target|soll|setpoint/),
+      (dc(s) === "temperature" || ["°C", "°F"].includes(unit(s))) &&
+      has(s, /target|soll|setpoint|set.?temp|desired/),
   },
 };
 
@@ -115,11 +124,22 @@ export function suggestSetup(hass) {
     const found = suggestEntity(hass, key, ids);
     if (found) entities[key] = found;
   }
-  const values = [];
-  for (const type of ["odometer", "range"]) {
-    const entity = suggestEntity(hass, type, ids);
-    if (entity) values.push({ type, entity });
-  }
+  const values = scanStandardValues(hass, ids);
   const d = hass.devices[device];
   return { name: d.name_by_user || d.name, device, entities, values };
+}
+
+// All standard values the device offers, each with its entity
+export function scanStandardValues(hass, ids, present = []) {
+  const values = [];
+  const used = [];
+  for (const type of STANDARD_VALUES) {
+    if (present.includes(type)) continue;
+    const entity = suggestEntity(hass, type, ids, used);
+    if (entity) {
+      values.push({ type, entity });
+      used.push(entity);
+    }
+  }
+  return values;
 }

@@ -121,8 +121,13 @@ class CarInfoCard extends LitElement {
     const stateEntity = this._config.entities.charging_state;
     if (stateEntity) {
       const s = this._stateObj(stateEntity);
+      if (!s) return false;
+      // Some integrations only offer an on/off sensor for charging
+      if (stateEntity.startsWith("binary_sensor.") && !this._config.charging_states) {
+        return s.state === "on";
+      }
       const states = this._config.charging_states || DEFAULT_CHARGING_STATES;
-      return !!s && states.includes(s.state);
+      return states.includes(s.state);
     }
     return this._powerKw() > 0;
   }

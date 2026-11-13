@@ -6,6 +6,16 @@ import { startServer } from "./server.mjs";
 const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
 const P = "sensor.my_car_";
+// What the device scan finds on the example car, in the editor's order
+const ALL_STANDARD = [
+  { type: "odometer", entity: P + "odometer" },
+  { type: "range", entity: P + "range" },
+  { type: "charging_power_value", entity: P + "charging_power" },
+  { type: "time_to_full", entity: P + "time_to_full" },
+  { type: "charging_state_value", entity: P + "charging_state" },
+  { type: "charging_type", entity: P + "charging_type" },
+  { type: "target_temperature", entity: P + "target_temperature" },
+];
 
 const { server, url } = await startServer();
 const browser = await chromium.launch();
@@ -156,6 +166,24 @@ try {
     await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light" }));
   });
 
+  // 6d. On/off charging sensor (binary_sensor): "on" means charging
+  await step("binary charging sensor", async () => {
+    const level = (state) => page.evaluate(async (st) => {
+      const card = document.querySelector("car-info-card");
+      const id = "binary_sensor.my_car_charging";
+      card.setConfig({ entities: { battery: "sensor.my_car_battery_level",
+        charging_power: "sensor.my_car_charging_power", charging_state: id } });
+      card.hass = { ...card.hass, states: { ...card.hass.states,
+        [id]: { entity_id: id, state: st, attributes: { device_class: "battery_charging" } } } };
+      await card.updateComplete;
+      return card.shadowRoot.querySelector(".battery").className;
+    }, state);
+    await page.evaluate(() => window.render({ scenario: "charging_ac", theme: "light", width: 560 }));
+    assert.match(await level("on"), /level-2/);
+    assert.match(await level("off"), /level-0/);
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light" }));
+  });
+
   // 7. Show or hide name and licence plate separately
   await step("name and plate", async () => {
     const header = () => page.evaluate(() => {
@@ -246,30 +274,42 @@ try {
     });
     assert.equal(await page.locator("car-info-card .soc").textContent(), "35 %");
 
+    // the device scan activates every standard value the device offers
     const tick = (type) => editor.locator(`.quick input[data-type=${type}]`);
-    for (const type of ["odometer", "range", "time_to_full", "charging_state_value", "charging_type", "target_temperature"]) {
-      await tick(type).check();
-    }
     assert.deepEqual((await cfg()).values, [
       { type: "odometer", entity: P + "odometer" },
       { type: "range", entity: P + "range" },
+      { type: "charging_power_value", entity: P + "charging_power" },
       { type: "time_to_full", entity: P + "time_to_full" },
       { type: "charging_state_value", entity: P + "charging_state" },
       { type: "charging_type", entity: P + "charging_type" },
       { type: "target_temperature", entity: P + "target_temperature" },
     ]);
+    for (const type of ["odometer", "range", "charging_power_value", "time_to_full"]) {
+      assert.equal(await tick(type).isChecked(), true);
+    }
     // general values left, charging values right
     const side = (cls) => page.locator(`car-info-card .values.${cls} .label`).allTextContents();
     assert.deepEqual(await side("left"), ["Odometer", "Range", "Target temperature"]);
-    assert.deepEqual(await side("right"), ["Time to full", "Charging state", "Charging type"]);
+    assert.deepEqual(await side("right"), ["Charging power", "Time to full", "Charging state", "Charging type"]);
     assert.deepEqual(await editor.locator(".value-row .badge").allTextContents(),
-      ["left · 1", "left · 2", "right · 3", "right · 4", "right · 5", "left · 6"]);
+      ["left · 1", "left · 2", "right · 3", "right · 4", "right · 5", "right · 6", "left · 7"]);
+
+    // more sensors of the device, not shown yet, can be ticked
+    const other = (id) => editor.locator(`.other input[data-entity="${id}"]`);
+    assert.deepEqual(await editor.locator(".other input").evaluateAll((es) => es.map((e) => e.dataset.entity)),
+      [P + "climate_time_left", P + "licence_plate"]);
+    await other(P + "climate_time_left").check();
+    assert.deepEqual((await cfg()).values.at(-1), { entity: P + "climate_time_left" });
+    assert.equal(await other(P + "climate_time_left").isChecked(), true);
+    await other(P + "climate_time_left").uncheck();
+    assert.ok(!(await cfg()).values.some((v) => v.entity === P + "climate_time_left"));
 
     // ⇄ moves a value to the other side and back
     const swap = (i) => editor.locator(".value-row").nth(i).locator("button[title='Other side']").click();
     await swap(0);
     assert.equal((await cfg()).values[0].position, "right");
-    assert.deepEqual(await side("right"), ["Odometer", "Time to full", "Charging state", "Charging type"]);
+    assert.deepEqual(await side("right"), ["Odometer", "Charging power", "Time to full", "Charging state", "Charging type"]);
     await swap(0);
     assert.equal("position" in (await cfg()).values[0], false);
     assert.deepEqual(await side("left"), ["Odometer", "Range", "Target temperature"]);
@@ -284,7 +324,7 @@ try {
     await tick("odometer").check();
     const odo = (await cfg()).values.find((v) => v.type === "odometer");
     assert.deepEqual(odo, { type: "odometer", entity: "" });
-    assert.equal(await page.locator("car-info-card .value").count(), 4);
+    assert.equal(await page.locator("car-info-card .value").count(), 5);
   });
 
   // 8c. New card and device change never keep a battery of another device
@@ -297,10 +337,7 @@ try {
         charging_power: P + "charging_power",
         charging_state: P + "charging_state",
       },
-      values: [
-        { type: "odometer", entity: P + "odometer" },
-        { type: "range", entity: P + "range" },
-      ],
+      values: ALL_STANDARD,
     });
     // the case from the real test: a robot vacuum battery was preselected
     await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light",
@@ -315,6 +352,7 @@ try {
     assert.deepEqual(c.values, [
       { type: "odometer", entity: P + "odometer" },
       { entity: "sensor.outdoor_temperature" },
+      ...ALL_STANDARD.slice(1),
     ]);
   });
 

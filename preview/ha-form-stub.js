@@ -40,7 +40,7 @@ class StubHaForm extends HTMLElement {
       const dom = sel.entity.filter?.domain;
       const include = sel.entity.include_entities;
       const ids = Object.keys(this._hass?.states || {})
-        .filter((id) => !dom || id.startsWith(dom + "."))
+        .filter((id) => !dom || [].concat(dom).some((d) => id.startsWith(d + ".")))
         .filter((id) => !include || include.includes(id));
       input.append(new Option("– none –", ""));
       ids.forEach((id) => input.append(new Option(id, id)));

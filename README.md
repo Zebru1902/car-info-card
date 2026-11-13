@@ -16,7 +16,7 @@ A Home Assistant dashboard card for electric cars: a generic SUV silhouette with
 - Works with any integration: all entities are assigned in the configuration
 - Values around the car: general information on the left, charging on the right; two columns below the car on narrow cards
 - 7 built-in vehicles (SUV, sedan, hatchback, van, and for fun a formula race car, a tractor and a vintage car) or your own image
-- Visual card editor: pick your car's device and the main entities are filled in; tick standard values like odometer or range to add them
+- Visual card editor: pick your car's device and the editor scans it, fills in the main entities and activates every standard value it finds; more sensors of the device can be added with one tick
 - Light and dark themes, respects "reduced motion"
 - User interface in English and German: follows the Home Assistant language or a fixed `language`; more languages via translation files
 
@@ -74,7 +74,7 @@ values:
 | `device` | – | Device ID; only used by the editor to show just this device's entities in the pickers |
 | `entities.battery` | – | State of charge in % (required) |
 | `entities.charging_power` | – | Charging power; W, kW and MW are converted |
-| `entities.charging_state` | – | Charging state; without it, power > 0 counts as charging |
+| `entities.charging_state` | – | Charging state (text sensor, or an on/off `binary_sensor` where "on" means charging); without it, power > 0 counts as charging |
 | `entities.plate` | – | Licence plate |
 | `charging_states` | `[charging]` | States of `charging_state` that count as charging |
 | `power_levels` | `[3.7, 11, 50]` | kW limits of bolt levels 1–3; above that level 4 |
