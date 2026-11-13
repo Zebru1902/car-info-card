@@ -9,6 +9,7 @@ import {
 import { localize, LANGUAGES, TRANSLATIONS } from "./localize.js";
 import { SILHOUETTE_NAMES, DEFAULT_SILHOUETTE } from "./silhouettes.js";
 import { STANDARD_VALUES, suggestEntity } from "./suggest.js";
+import { assignSides, defaultSide } from "./layout.js";
 
 const COLOR_NAMES = ["0–20 %", "20–40 %", "40–60 %", "60–80 %", "80–100 %"];
 
@@ -59,6 +60,7 @@ const VALUE_SCHEMA = [
 
 const PATH_UP = "M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z";
 const PATH_DOWN = "M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z";
+const PATH_SWAP = "M21,9L17,5V8H10V10H17V13M7,11L3,15L7,19V16H14V14H7V11Z";
 const PATH_DELETE =
   "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z";
 
@@ -134,6 +136,7 @@ class CarInfoCardEditor extends LitElement {
       if (!isEmpty(v.type)) item.type = v.type;
       if (!isEmpty(v.name)) item.name = v.name;
       if (!isEmpty(v.icon)) item.icon = v.icon;
+      if (v.position === "left" || v.position === "right") item.position = v.position;
       return item;
     });
     if (!out.values.length) delete out.values;
@@ -221,6 +224,15 @@ class CarInfoCardEditor extends LitElement {
     const target = index + delta;
     if (target < 0 || target >= values.length) return;
     [values[index], values[target]] = [values[target], values[index]];
+    this._commit({ ...this._config, values });
+  }
+
+  // Moves a value to the other side; the usual side of a standard value is not stored
+  _switchSide(index, current) {
+    const values = [...this._config.values];
+    const target = current === "left" ? "right" : "left";
+    const { position, ...rest } = values[index];
+    values[index] = defaultSide(rest) === target ? rest : { ...rest, position: target };
     this._commit({ ...this._config, values });
   }
 
@@ -350,7 +362,7 @@ class CarInfoCardEditor extends LitElement {
     const colors = resolveColors(cfg.colors);
     const valueSchema = VALUE_SCHEMA.map((s) => (s.name === "name" ? { ...s, _value: true } : s));
     const entitySchema = this._filterSchema(ENTITY_SCHEMA, Object.values(cfg.entities));
-    const half = Math.ceil(cfg.values.length / 2);
+    const sides = assignSides(cfg.values);
 
     return html`
       <div class="section">
@@ -413,11 +425,14 @@ class CarInfoCardEditor extends LitElement {
           (v, i) => html`
             <div class="value-row">
               <div class="value-head">
-                <span class="badge">${this._t(i < half ? "editor.left" : "editor.right")} · ${i + 1}</span>
+                <span class="badge">${this._t(sides[i] === "left" ? "editor.left" : "editor.right")} · ${i + 1}</span>
                 <span class="spacer"></span>
                 ${this._iconButton(PATH_UP, this._t("editor.move_up"), i === 0, () => this._moveValue(i, -1))}
                 ${this._iconButton(PATH_DOWN, this._t("editor.move_down"), i === cfg.values.length - 1, () =>
                   this._moveValue(i, 1)
+                )}
+                ${this._iconButton(PATH_SWAP, this._t("editor.switch_side"), false, () =>
+                  this._switchSide(i, sides[i])
                 )}
                 ${this._iconButton(PATH_DELETE, this._t("editor.remove"), false, () => this._removeValue(i))}
               </div>

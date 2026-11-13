@@ -14,7 +14,7 @@ A Home Assistant dashboard card for electric cars: a generic SUV silhouette with
 - All segments turn dark green only when the battery is full, so 85 % never looks full
 - Charging bolt in 4 power levels (default limits 3.7 / 11 / 50 kW, configurable)
 - Works with any integration: all entities are assigned in the configuration
-- Values on the left and right of the car; two columns below the car on narrow cards
+- Values around the car: general information on the left, charging on the right; two columns below the car on narrow cards
 - 7 built-in vehicles (SUV, sedan, hatchback, van, and for fun a formula race car, a tractor and a vintage car) or your own image
 - Visual card editor: pick your car's device and the main entities are filled in; tick standard values like odometer or range to add them
 - Light and dark themes, respects "reduced motion"
@@ -82,7 +82,7 @@ values:
 | `silhouette` | `suv` | Built-in vehicle: `suv`, `sedan`, `hatchback`, `van`, `race`, `tractor`, `vintage` |
 | `image` | – | Own image instead of the built-in vehicle, e.g. `/local/car.png` |
 | `language` | `auto` | Language of the card's texts: `auto` (Home Assistant language), `en`, `de` |
-| `values` | `[]` | List of `entity` (+ optional `name`, `icon`, and `type` set by the editor's standard values); first half on the left, second half on the right |
+| `values` | `[]` | List of `entity` (+ optional `name`, `icon`, `position: left \| right`, and `type` set by the editor's standard values). General values go left, charging values right, others fill up the shorter side |
 
 ![Card editor (preview)](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/editor-light.png)
 

@@ -9,6 +9,7 @@ import {
 import { localize, browserLanguageString, LANGUAGES } from "./localize.js";
 import { SILHOUETTES, SILHOUETTE_NAMES, DEFAULT_SILHOUETTE } from "./silhouettes.js";
 import { suggestSetup } from "./suggest.js";
+import { splitValues } from "./layout.js";
 import "./car-info-card-editor.js";
 
 const UNAVAILABLE = ["unknown", "unavailable", "none", ""];
@@ -155,9 +156,7 @@ class CarInfoCard extends LitElement {
     const level = this._chargeLevel();
     // Rows without an entity are still being set up in the editor
     const values = cfg.values.filter((v) => v.entity);
-    const half = Math.ceil(values.length / 2);
-    const left = values.slice(0, half);
-    const right = values.slice(half);
+    const { left, right } = splitValues(values);
     const plate = this._stateObj(cfg.entities.plate);
     const showName = cfg.show_name !== false && !!cfg.name;
     const showPlate = cfg.show_plate !== false && this._isAvailable(plate);
@@ -643,6 +642,9 @@ class CarInfoCard extends LitElement {
         .center {
           grid-column: 1 / -1;
           grid-row: 1;
+        }
+        .values {
+          align-self: start;
         }
         .values.right {
           text-align: left;
