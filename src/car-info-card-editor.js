@@ -154,21 +154,30 @@ class CarInfoCardEditor extends LitElement {
     });
   }
 
-  // Selecting a device fills empty entity fields with matching entities of it
+  // Selecting a device fills the main entity fields and the standard values with
+  // matching entities of it. Fields that already hold an entity of this device
+  // stay as they are; empty fields and entities of other devices are replaced.
   _deviceChanged(ev) {
     ev.stopPropagation();
     const device = ev.detail.value.device;
     const entities = { ...this._config.entities };
+    let values = this._config.values;
     const ids = this._entitiesOfDevice(device);
     if (ids) {
+      const replace = (current) => isEmpty(current) || !ids.includes(current);
       for (const key of ["battery", "charging_power", "charging_state"]) {
-        if (isEmpty(entities[key])) {
+        if (replace(entities[key])) {
           const found = suggestEntity(this.hass, key, ids);
           if (found) entities[key] = found;
         }
       }
+      values = values.map((v) => {
+        if (!v.type || !replace(v.entity)) return v;
+        const found = suggestEntity(this.hass, v.type, ids);
+        return found ? { ...v, entity: found } : v;
+      });
     }
-    this._commit({ ...this._config, device, entities });
+    this._commit({ ...this._config, device, entities, values });
   }
 
   // Ticking a standard value adds it with a suggested entity; unticking removes it

@@ -1,4 +1,4 @@
-export const VERSION = "0.2.1";
+export const VERSION = "0.2.2";
 
 // Five segment colors (0–20 % … 80–100 %: red, orange, yellow, yellow-green,
 // light green) plus the color of all segments when fully charged (dark green)

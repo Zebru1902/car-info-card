@@ -272,6 +272,37 @@ try {
     assert.equal(await page.locator("car-info-card .value").count(), 4);
   });
 
+  // 8c. New card and device change never keep a battery of another device
+  await step("car detection", async () => {
+    assert.deepEqual(await page.evaluate(() => window.stubConfig()), {
+      name: "My car",
+      device: "dev_car",
+      entities: {
+        battery: P + "battery_level",
+        charging_power: P + "charging_power",
+        charging_state: P + "charging_state",
+      },
+      values: [
+        { type: "odometer", entity: P + "odometer" },
+        { type: "range", entity: P + "range" },
+      ],
+    });
+    // the case from the real test: a robot vacuum battery was preselected
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light",
+      config: { entities: { battery: "sensor.robot_vacuum_battery", charging_power: "sensor.wallbox_power" },
+        values: [{ type: "odometer", entity: "sensor.robot_vacuum_battery" }, { entity: "sensor.outdoor_temperature" }] } }));
+    await field(1, "device").selectOption("dev_car");
+    const c = await cfg();
+    assert.equal(c.entities.battery, P + "battery_level");
+    assert.equal(c.entities.charging_power, P + "charging_power");
+    assert.equal(c.entities.charging_state, P + "charging_state");
+    // standard values follow the device, own values stay
+    assert.deepEqual(c.values, [
+      { type: "odometer", entity: P + "odometer" },
+      { entity: "sensor.outdoor_temperature" },
+    ]);
+  });
+
   // 8b. Language option overrides the Home Assistant language
   await step("language option", async () => {
     const options = await field(0, "language").locator("option")

@@ -102,7 +102,13 @@
     "conserving", "discharging", "charging_interrupted"];
 
   function makeHass(values, language = "en") {
-    const states = {};
+    // A robot vacuum listed before the car: its battery must not be picked for the car
+    const states = {
+      "sensor.robot_vacuum_battery": { entity_id: "sensor.robot_vacuum_battery", state: "100",
+        attributes: { friendly_name: "Robot vacuum Battery", unit_of_measurement: "%", device_class: "battery" } },
+      "sensor.robot_vacuum_status": { entity_id: "sensor.robot_vacuum_status", state: "charging",
+        attributes: { friendly_name: "Robot vacuum Status", device_class: "enum", options: ["cleaning", "charging", "docked"] } },
+    };
     for (const [k, v] of Object.entries(values)) {
       const [name, unit, icon] = META[k];
       states[P + k] = { entity_id: P + k, state: v,
@@ -119,12 +125,14 @@
     states["sensor.outdoor_temperature"] = { entity_id: "sensor.outdoor_temperature", state: "8.5",
       attributes: { friendly_name: "Outdoor temperature", unit_of_measurement: "°C", icon: "mdi:thermometer" } };
     const devices = {
+      dev_vacuum: { id: "dev_vacuum", name: "Robot vacuum" },
       dev_car: { id: "dev_car", name: "My car" },
       dev_wallbox: { id: "dev_wallbox", name: "Wallbox" },
     };
     const entities = {};
     for (const id of Object.keys(states)) {
-      const device_id = id.startsWith(P) ? "dev_car" : id.startsWith("sensor.wallbox") ? "dev_wallbox" : null;
+      const device_id = id.startsWith(P) ? "dev_car" : id.startsWith("sensor.wallbox") ? "dev_wallbox"
+        : id.startsWith("sensor.robot_vacuum") ? "dev_vacuum" : null;
       entities[id] = { entity_id: id, device_id };
     }
     return {
@@ -226,6 +234,10 @@
     wrap.replaceChildren(...cards);
     await Promise.all(cards.map((c) => c.updateComplete));
   };
+
+  // Starting configuration the card proposes for a new card
+  window.stubConfig = (scenario = "unplugged") =>
+    customElements.get("car-info-card").getStubConfig(makeHass(SCENARIOS[scenario]));
 
   window.ready = true;
 </script>

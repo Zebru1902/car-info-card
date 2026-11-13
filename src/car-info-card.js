@@ -8,6 +8,7 @@ import {
 } from "./const.js";
 import { localize, browserLanguageString, LANGUAGES } from "./localize.js";
 import { SILHOUETTES, SILHOUETTE_NAMES, DEFAULT_SILHOUETTE } from "./silhouettes.js";
+import { suggestSetup } from "./suggest.js";
 import "./car-info-card-editor.js";
 
 const UNAVAILABLE = ["unknown", "unavailable", "none", ""];
@@ -27,19 +28,12 @@ class CarInfoCard extends LitElement {
     return document.createElement("car-info-card-editor");
   }
 
+  // New card: picks the device that looks like a car (not just any battery,
+  // e.g. of a robot vacuum) and fills in its main entities
   static getStubConfig(hass) {
-    const states = hass ? Object.values(hass.states) : [];
-    const battery = states.find(
-      (s) =>
-        s.entity_id.startsWith("sensor.") &&
-        s.attributes.device_class === "battery"
-    );
-    return {
-      name: "Auto",
-      entities: { battery: battery ? battery.entity_id : "" },
-      values: [],
-    };
+    return suggestSetup(hass);
   }
+
 
   setConfig(config) {
     if (!config) {
