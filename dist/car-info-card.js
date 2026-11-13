@@ -770,4 +770,4 @@ const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow
           flex-direction: row;
         }
       }
-    `}}var ot;customElements.get("car-info-card")||(customElements.define("car-info-card",nt),window.customCards=window.customCards||[],window.customCards.push({type:"car-info-card",name:"Car Info Card",description:(ot="card.description",ve({language:navigator.language||"en"},ot)),preview:!0}),console.info("%c CAR-INFO-CARD %c 0.4.1 ","color:#fff;background:#2e7d32;font-weight:600","color:#2e7d32;background:#fff"));
+    `}}var ot;customElements.get("car-info-card")||(customElements.define("car-info-card",nt),window.customCards=window.customCards||[],window.customCards.push({type:"car-info-card",name:"Car Info Card",description:(ot="card.description",ve({language:navigator.language||"en"},ot)),preview:!0}),console.info("%c CAR-INFO-CARD %c 0.4.2 ","color:#fff;background:#2e7d32;font-weight:600","color:#2e7d32;background:#fff"));

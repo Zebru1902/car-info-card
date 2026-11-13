@@ -5,7 +5,7 @@
 
 A Home Assistant dashboard card for cars – electric, plug-in hybrid or combustion: a generic car silhouette with a battery or fuel gauge in the middle. For electric cars the battery is split into 5 segments of 20 % each (red, orange, yellow, yellow-green, light green; all dark green when full), with a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its pulse, glow and size follow the charging power. Any values you like (odometer, range, charging power, time to full, target temperature, …) are shown around the car.
 
-> Status: **0.4.1**, early version. Tested in a real Home Assistant with one electric car integration; combustion cars and hybrids only with example data so far.
+> Status: **0.4.2**, early version. Tested in a real Home Assistant with one electric car and one combustion car (two different integrations, all entities detected automatically); plug-in hybrids only with example data so far.
 
 | Electric car, charging | Plug-in hybrid | Combustion car |
 |:---:|:---:|:---:|
