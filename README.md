@@ -26,6 +26,15 @@ A Home Assistant dashboard card for cars – electric, plug-in hybrid or combust
 - Light and dark themes, respects "reduced motion"
 - User interface in English and German: follows the Home Assistant language or a fixed `language`; more languages via translation files
 
+## Tested with
+
+| Integration | Drive | Result |
+|---|---|---|
+| Škoda (built-in Home Assistant integration) | Electric | Works; tested unplugged, charging not tested yet |
+| [VW Group Connect](https://github.com/its-me-prash/vwgroup-connect-ha) (Marketplace) | Combustion | Works; all entities detected automatically |
+
+Using the card with another integration? Please tell us in an [issue](https://github.com/Zebru1902/car-info-card/issues) whether it worked and which entities had to be chosen by hand, so the list and the automatic detection can grow.
+
 <!-- ha-marketplace:exclude-start -->
 ## Installation
 
