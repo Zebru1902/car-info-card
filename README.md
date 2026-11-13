@@ -7,11 +7,11 @@ A Home Assistant dashboard card for cars – electric, plug-in hybrid or combust
 
 > Status: **0.4.1**, early version. Tested in a real Home Assistant with one electric car integration; combustion cars and hybrids only with example data so far.
 
-![Unplugged](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/unplugged-light.png)
-![AC charging](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/charging-ac-light.png)
-![DC charging, dark theme](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/charging-dc-dark.png)
-![Combustion car](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/combustion-light.png)
-![Plug-in hybrid, dark theme](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/hybrid-dark.png)
+| Electric car, charging | Plug-in hybrid | Combustion car |
+|:---:|:---:|:---:|
+| ![Electric car charging](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/charging-ac-light.png) | ![Plug-in hybrid](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/hybrid-dark.png) | ![Combustion car](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/combustion-light.png) |
+| **Unplugged** | **Fully charged** | **DC fast charging** |
+| ![Unplugged](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/unplugged-light.png) | ![Fully charged](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/full-light.png) | ![DC fast charging](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/charging-dc-dark.png) |
 
 ## Features
 
