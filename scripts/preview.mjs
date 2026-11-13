@@ -13,6 +13,18 @@ const shots = [
   { file: "charging-ac-light", scenario: "charging_ac", theme: "light", width: 560 },
   { file: "charging-dc-dark", scenario: "charging_dc", theme: "dark", width: 560 },
   { file: "full-light", scenario: "full", theme: "light", width: 560 },
+  { file: "combustion-light", scenario: "unplugged", theme: "light", width: 560, config: {
+    name: "Petrol car", silhouette: "sedan", device: "dev_petrol",
+    entities: { fuel: "sensor.petrol_car_fuel_level" },
+    values: ["odometer", "fuel_range", "next_service", "oil_level", "outside_temperature"]
+      .map((k) => ({ entity: `sensor.petrol_car_${k}` })) } },
+  { file: "hybrid-dark", scenario: "unplugged", theme: "dark", width: 560, config: {
+    name: "Hybrid car", silhouette: "hatchback", fuel_capacity: 40,
+    entities: { battery: "sensor.hybrid_car_battery_level", fuel: "sensor.hybrid_car_fuel_level",
+      charging_power: "sensor.hybrid_car_charging_power", charging_state: "sensor.hybrid_car_charging_state" },
+    values: [["odometer", "odometer"], ["range", "electric_range"], ["fuel_range", "fuel_range"],
+      ["charging_power_value", "charging_power"], ["charging_state_value", "charging_state"]]
+      .map(([type, k]) => ({ type, entity: `sensor.hybrid_car_${k}` })) } },
   { file: "slow-narrow-dark", scenario: "slow", theme: "dark", width: 360 },
 ];
 

@@ -124,15 +124,45 @@
       attributes: { friendly_name: "Wallbox Power", unit_of_measurement: "kW", device_class: "power", icon: "mdi:ev-station" } };
     states["sensor.outdoor_temperature"] = { entity_id: "sensor.outdoor_temperature", state: "8.5",
       attributes: { friendly_name: "Outdoor temperature", unit_of_measurement: "°C", icon: "mdi:thermometer" } };
+    // A combustion car and a plug-in hybrid (fuel in litres) for the drive tests
+    const extra = (prefix, list) => {
+      for (const [key, state, name, attrs] of list) {
+        states[`sensor.${prefix}_${key}`] = { entity_id: `sensor.${prefix}_${key}`, state,
+          attributes: { friendly_name: name, ...attrs } };
+      }
+    };
+    extra("petrol_car", [
+      ["fuel_level", "45", "Petrol car Fuel level", { unit_of_measurement: "%", icon: "mdi:gas-station" }],
+      ["fuel_range", "420", "Petrol car Fuel range", { unit_of_measurement: "km", device_class: "distance", icon: "mdi:map-marker-distance" }],
+      ["odometer", "88210", "Petrol car Odometer", { unit_of_measurement: "km", device_class: "distance", icon: "mdi:counter" }],
+      ["next_service", "3200", "Petrol car Next service", { unit_of_measurement: "km", device_class: "distance", icon: "mdi:wrench" }],
+      ["oil_level", "78", "Petrol car Oil level", { unit_of_measurement: "%", icon: "mdi:oil" }],
+      ["outside_temperature", "8.5", "Petrol car Outside temperature", { unit_of_measurement: "°C", device_class: "temperature", icon: "mdi:thermometer" }],
+      ["battery_12v", "12.4", "Petrol car 12V battery", { unit_of_measurement: "V", device_class: "voltage", icon: "mdi:car-battery" }],
+    ]);
+    extra("hybrid_car", [
+      ["battery_level", "60", "Hybrid car Battery level", { unit_of_measurement: "%", device_class: "battery" }],
+      ["fuel_level", "30", "Hybrid car Fuel level", { unit_of_measurement: "L", icon: "mdi:gas-station" }],
+      ["electric_range", "45", "Hybrid car Electric range", { unit_of_measurement: "km", device_class: "distance", icon: "mdi:map-marker-distance" }],
+      ["fuel_range", "380", "Hybrid car Fuel range", { unit_of_measurement: "km", device_class: "distance", icon: "mdi:map-marker-distance" }],
+      ["total_range", "425", "Hybrid car Total range", { unit_of_measurement: "km", device_class: "distance", icon: "mdi:map-marker-distance" }],
+      ["odometer", "41200", "Hybrid car Odometer", { unit_of_measurement: "km", device_class: "distance", icon: "mdi:counter" }],
+      ["charging_power", "3.6", "Hybrid car Charging power", { unit_of_measurement: "kW", device_class: "power", icon: "mdi:flash" }],
+      ["charging_state", "charging", "Hybrid car Charging state", { device_class: "enum", options: CHARGING_OPTIONS, icon: "mdi:ev-station" }],
+    ]);
     const devices = {
       dev_vacuum: { id: "dev_vacuum", name: "Robot vacuum" },
       dev_car: { id: "dev_car", name: "My car" },
       dev_wallbox: { id: "dev_wallbox", name: "Wallbox" },
+      dev_petrol: { id: "dev_petrol", name: "Petrol car" },
+      dev_hybrid: { id: "dev_hybrid", name: "Hybrid car" },
     };
     const entities = {};
     for (const id of Object.keys(states)) {
       const device_id = id.startsWith(P) ? "dev_car" : id.startsWith("sensor.wallbox") ? "dev_wallbox"
-        : id.startsWith("sensor.robot_vacuum") ? "dev_vacuum" : null;
+        : id.startsWith("sensor.robot_vacuum") ? "dev_vacuum"
+        : id.startsWith("sensor.petrol_car") ? "dev_petrol"
+        : id.startsWith("sensor.hybrid_car") ? "dev_hybrid" : null;
       entities[id] = { entity_id: id, device_id };
     }
     return {

@@ -47,7 +47,7 @@ try {
 
   // 2. Select the required entity
   await step("select battery level", async () => {
-    await field(2, "battery").selectOption(P + "battery_level");
+    await field(3, "battery").selectOption(P + "battery_level");
     assert.equal((await cfg()).entities.battery, P + "battery_level");
     assert.equal(await page.locator("car-info-card .soc").textContent(), "35 %");
   });
@@ -95,19 +95,19 @@ try {
 
   // 5. Charging: states and power levels
   await step("charging states", async () => {
-    await field(2, "charging_state").selectOption(P + "charging_state");
+    await field(3, "charging_state").selectOption(P + "charging_state");
     assert.equal("charging_states" in (await cfg()), false);
-    await forms.nth(3).locator("input[value=conserving]").check();
+    await forms.nth(4).locator("input[value=conserving]").check();
     assert.deepEqual((await cfg()).charging_states, ["charging", "conserving"]);
-    await forms.nth(3).locator("input[value=conserving]").uncheck();
+    await forms.nth(4).locator("input[value=conserving]").uncheck();
     assert.equal("charging_states" in (await cfg()), false);
   });
   await step("power levels", async () => {
-    await field(3, "power_2").fill("22");
-    await field(3, "power_2").dispatchEvent("change");
+    await field(4, "power_2").fill("22");
+    await field(4, "power_2").dispatchEvent("change");
     assert.deepEqual((await cfg()).power_levels, [3.7, 22, 50]);
-    await field(3, "power_2").fill("11");
-    await field(3, "power_2").dispatchEvent("change");
+    await field(4, "power_2").fill("11");
+    await field(4, "power_2").dispatchEvent("change");
     assert.equal("power_levels" in (await cfg()), false);
   });
 
@@ -239,15 +239,15 @@ try {
       field(form, name).locator("option").evaluateAll((os) => os.map((o) => o.value).filter(Boolean));
     const addOptions = () => editor.locator(".add ha-form label[data-name=entity] select option")
       .evaluateAll((os) => os.map((o) => o.value).filter(Boolean));
-    // forms: 0 general, 1 device, 2 entities, 3 charging
+    // forms: 0 general, 1 device, 2 drive, 3 entities, 4 charging
     await field(1, "device").selectOption("");
-    assert.ok((await options(2, "charging_power")).includes("sensor.wallbox_power"));
+    assert.ok((await options(3, "charging_power")).includes("sensor.wallbox_power"));
     assert.ok((await addOptions()).includes("sensor.outdoor_temperature"));
     assert.equal("device" in (await cfg()), false);
 
     await field(1, "device").selectOption("dev_car");
     assert.equal((await cfg()).device, "dev_car");
-    const power = await options(2, "charging_power");
+    const power = await options(3, "charging_power");
     assert.ok(power.includes(P + "charging_power"));
     assert.ok(!power.includes("sensor.wallbox_power"));
     const add = await addOptions();
@@ -255,11 +255,13 @@ try {
     assert.ok(!add.includes("sensor.outdoor_temperature"));
 
     await field(1, "device").selectOption("dev_wallbox");
-    const battery = await options(2, "battery");
-    // the already configured battery entity stays selectable
-    assert.ok(battery.includes(P + "battery_level"));
+    const battery = await options(3, "battery");
     assert.ok(battery.includes("sensor.wallbox_power"));
     assert.ok(!battery.includes(P + "range"));
+    // a field of another device that this device has no match for is cleared,
+    // a field it has a match for is replaced
+    assert.equal((await cfg()).entities.battery, undefined);
+    assert.equal((await cfg()).entities.charging_power, "sensor.wallbox_power");
   });
 
   // 8a. Selecting a device fills empty entity fields; standard values by ticking
@@ -324,7 +326,8 @@ try {
     await tick("odometer").check();
     const odo = (await cfg()).values.find((v) => v.type === "odometer");
     assert.deepEqual(odo, { type: "odometer", entity: "" });
-    assert.equal(await page.locator("car-info-card .value").count(), 5);
+    // the wallbox has no battery level: the card asks for one
+    assert.equal(await page.locator("car-info-card .hint").count(), 1);
   });
 
   // 8c. New card and device change never keep a battery of another device
@@ -354,6 +357,66 @@ try {
       { entity: "sensor.outdoor_temperature" },
       ...ALL_STANDARD.slice(1),
     ]);
+  });
+
+  // 8d. Combustion car: fuel gauge instead of the battery, own standard values
+  await step("combustion car", async () => {
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light",
+      config: { entities: {} } }));
+    await field(1, "device").selectOption("dev_petrol");
+    const c = await cfg();
+    assert.deepEqual(c.entities, { fuel: "sensor.petrol_car_fuel_level" });
+    assert.deepEqual(c.values.map((v) => v.type),
+      ["odometer", "fuel_range", "fuel_level_value", "service", "oil_level", "outside_temperature"]);
+    // the 12 V battery is not taken as battery level
+    assert.ok(!JSON.stringify(c).includes("battery_12v"));
+    assert.equal(await page.locator("car-info-card svg.tank").count(), 1);
+    assert.equal(await page.locator("car-info-card .bolt").count(), 0);
+    assert.equal(await page.locator("car-info-card .soc").textContent(), "45 %");
+    assert.equal(await page.locator("car-info-card .status").count(), 0);
+    // no charging section and no battery field in the editor
+    assert.ok(!(await editor.locator("h3").allTextContents()).includes("Charging"));
+    assert.equal(await forms.nth(3).locator('label[data-name="battery"]').count(), 0);
+    assert.equal(await editor.locator('.quick input[data-type="service"]').isChecked(), true);
+  });
+
+  // 8e. Plug-in hybrid: battery plus fuel bar, fuel in litres needs the tank size
+  await step("plug-in hybrid", async () => {
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light",
+      config: { entities: {} } }));
+    await field(1, "device").selectOption("dev_hybrid");
+    const c = await cfg();
+    assert.deepEqual(c.entities, {
+      battery: "sensor.hybrid_car_battery_level",
+      fuel: "sensor.hybrid_car_fuel_level",
+      charging_power: "sensor.hybrid_car_charging_power",
+      charging_state: "sensor.hybrid_car_charging_state",
+    });
+    assert.deepEqual(c.values.map((v) => [v.type, v.entity.replace("sensor.hybrid_car_", "")]), [
+      ["odometer", "odometer"], ["range", "electric_range"], ["fuel_range", "fuel_range"],
+      ["total_range", "total_range"], ["charging_power_value", "charging_power"],
+      ["charging_state_value", "charging_state"],
+    ]);
+    assert.equal(await page.locator("car-info-card .battery[data-drive=hybrid]").count(), 1);
+    assert.equal(await page.locator("car-info-card .soc").textContent(), "60 %");
+    assert.match(await page.locator("car-info-card .fuel-line").textContent(), /–/);
+    assert.match(await page.locator("car-info-card .problem").textContent(), /in L\. Please enter the tank size/);
+    await field(2, "fuel_capacity").fill("40");
+    await field(2, "fuel_capacity").dispatchEvent("change");
+    assert.equal((await cfg()).fuel_capacity, 40);
+    assert.match(await page.locator("car-info-card .fuel-line").textContent(), /75 %/);
+    assert.equal(await page.locator("car-info-card .problem").count(), 0);
+    // charging still works
+    assert.match(await page.locator("car-info-card .battery").getAttribute("class"), /level-1/);
+  });
+
+  // 8f. Drive set by hand wins over the detection
+  await step("drive option", async () => {
+    await field(2, "drive").selectOption("electric");
+    assert.equal((await cfg()).drive, "electric");
+    assert.equal(await page.locator("car-info-card .fuel-line").count(), 0);
+    await field(2, "drive").selectOption("auto");
+    assert.equal("drive" in (await cfg()), false);
   });
 
   // 8b. Language option overrides the Home Assistant language

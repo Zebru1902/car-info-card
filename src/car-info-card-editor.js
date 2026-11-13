@@ -8,8 +8,17 @@ import {
 } from "./const.js";
 import { localize, LANGUAGES, TRANSLATIONS } from "./localize.js";
 import { SILHOUETTE_NAMES, DEFAULT_SILHOUETTE } from "./silhouettes.js";
-import { STANDARD_VALUES, suggestEntity, scanStandardValues } from "./suggest.js";
+import {
+  standardValues,
+  suggestEntity,
+  scanStandardValues,
+  detectDrive,
+  mainEntities,
+  MAIN_KEYS,
+} from "./suggest.js";
 import { assignSides, defaultSide } from "./layout.js";
+
+const DRIVES = ["electric", "combustion", "hybrid"];
 
 const COLOR_NAMES = ["0–20 %", "20–40 %", "40–60 %", "60–80 %", "80–100 %"];
 
@@ -38,8 +47,17 @@ const DEVICE_SCHEMA = [
   { name: "device", selector: { device: { entity: [{ domain: "sensor" }] } } },
 ];
 
+const DRIVE_SCHEMA = [
+  { name: "drive", selector: { select: { mode: "dropdown", options: [] } } },
+  {
+    name: "fuel_capacity",
+    selector: { number: { min: 0, max: 500, step: 1, mode: "box", unit_of_measurement: "L" } },
+  },
+];
+
 const ENTITY_SCHEMA = [
-  { name: "battery", required: true, selector: { entity: { filter: { domain: "sensor" } } } },
+  { name: "battery", selector: { entity: { filter: { domain: "sensor" } } } },
+  { name: "fuel", selector: { entity: { filter: { domain: "sensor" } } } },
   { name: "charging_power", selector: { entity: { filter: { domain: "sensor" } } } },
   { name: "charging_state", selector: { entity: { filter: { domain: ["sensor", "binary_sensor"] } } } },
   { name: "plate", selector: { entity: {} } },
@@ -114,6 +132,9 @@ class CarInfoCardEditor extends LitElement {
     const out = { ...config };
     // Do not write empty or default values to the config
     for (const key of ["name", "image", "device"]) if (isEmpty(out[key])) delete out[key];
+    if (isEmpty(out.drive) || out.drive === "auto") delete out.drive;
+    if (isEmpty(out.fuel_capacity) || !(Number(out.fuel_capacity) > 0)) delete out.fuel_capacity;
+    else out.fuel_capacity = Number(out.fuel_capacity);
     if (isEmpty(out.silhouette) || out.silhouette === DEFAULT_SILHOUETTE) delete out.silhouette;
     if (isEmpty(out.language) || out.language === "auto") delete out.language;
     if (out.show_name === true) delete out.show_name;
@@ -168,10 +189,12 @@ class CarInfoCardEditor extends LitElement {
     const ids = this._entitiesOfDevice(device);
     if (ids) {
       const replace = (current) => isEmpty(current) || !ids.includes(current);
-      for (const key of ["battery", "charging_power", "charging_state"]) {
+      const found = mainEntities(this.hass, ids);
+      for (const key of MAIN_KEYS) {
         if (replace(entities[key])) {
-          const found = suggestEntity(this.hass, key, ids);
-          if (found) entities[key] = found;
+          if (found[key]) entities[key] = found[key];
+          // a field of another device that this device has no match for is cleared
+          else if (!isEmpty(entities[key])) delete entities[key];
         }
       }
       values = values.map((v) => {
@@ -181,7 +204,8 @@ class CarInfoCardEditor extends LitElement {
       });
       // Scan the device: activate every standard value it offers
       const present = values.map((v) => v.type).filter(Boolean);
-      values = [...values, ...scanStandardValues(this.hass, ids, present)];
+      const drive = DRIVES.includes(this._config.drive) ? this._config.drive : detectDrive(this.hass, ids);
+      values = [...values, ...scanStandardValues(this.hass, ids, present, drive)];
     }
     this._commit({ ...this._config, device, entities, values });
   }
@@ -228,6 +252,28 @@ class CarInfoCardEditor extends LitElement {
     const device = entry && this.hass.devices && this.hass.devices[entry.device_id];
     const prefix = device && (device.name_by_user || device.name);
     return prefix && full.startsWith(prefix + " ") ? full.slice(prefix.length + 1) : full;
+  }
+
+  _driveChanged(ev) {
+    ev.stopPropagation();
+    const v = ev.detail.value;
+    this._commit({ ...this._config, drive: v.drive, fuel_capacity: v.fuel_capacity });
+  }
+
+  // Same rule as the card: the option drive, otherwise by the entities
+  _drive() {
+    const cfg = this._config;
+    if (DRIVES.includes(cfg.drive)) return cfg.drive;
+    const { battery, fuel } = cfg.entities;
+    if (battery && fuel) return "hybrid";
+    return fuel ? "combustion" : "electric";
+  }
+
+  _driveSchema() {
+    const options = ["auto", ...DRIVES].map((d) => ({ value: d, label: this._t(`drive.${d}`) }));
+    return DRIVE_SCHEMA.filter((s) => s.name !== "fuel_capacity" || this._drive() !== "electric").map((s) =>
+      s.name === "drive" ? { ...s, selector: { select: { mode: "dropdown", options } } } : s
+    );
   }
 
   _entitiesChanged(ev) {
@@ -397,7 +443,13 @@ class CarInfoCardEditor extends LitElement {
     const levels = cfg.power_levels || DEFAULT_POWER_LEVELS;
     const colors = resolveColors(cfg.colors);
     const valueSchema = VALUE_SCHEMA.map((s) => (s.name === "name" ? { ...s, _value: true } : s));
-    const entitySchema = this._filterSchema(ENTITY_SCHEMA, Object.values(cfg.entities));
+    const drive = this._drive();
+    const hidden =
+      drive === "combustion" ? ["battery", "charging_power", "charging_state"] : drive === "electric" && !cfg.drive ? [] : [];
+    const entitySchema = this._filterSchema(
+      ENTITY_SCHEMA.filter((e) => !hidden.includes(e.name)),
+      Object.values(cfg.entities)
+    );
     const sides = assignSides(cfg.values);
 
     return html`
@@ -420,10 +472,15 @@ class CarInfoCardEditor extends LitElement {
       <div class="section">
         <h3>${this._t("editor.entities")}</h3>
         ${this._form(DEVICE_SCHEMA, { device: cfg.device || "" }, this._deviceChanged)}
+        ${this._form(
+          this._driveSchema(),
+          { drive: cfg.drive || "auto", fuel_capacity: cfg.fuel_capacity },
+          this._driveChanged
+        )}
         ${this._form(entitySchema, cfg.entities, this._entitiesChanged)}
       </div>
 
-      <div class="section">
+      ${this._drive() === "combustion" ? nothing : html`<div class="section">
         <h3>${this._t("editor.charging")}</h3>
         <p class="note">${this._t("editor.charging_note")}</p>
         ${this._form(
@@ -436,12 +493,12 @@ class CarInfoCardEditor extends LitElement {
           },
           this._chargingChanged
         )}
-      </div>
+      </div>`}
 
       <div class="section">
         <h3>${this._t("editor.values")}</h3>
         <div class="quick">
-          ${STANDARD_VALUES.map(
+          ${standardValues(this._drive()).map(
             (type) => html`
               <label>
                 <input
