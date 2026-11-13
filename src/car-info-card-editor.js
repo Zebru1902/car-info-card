@@ -8,7 +8,7 @@ import {
 } from "./const.js";
 import { localize, LANGUAGES, TRANSLATIONS } from "./localize.js";
 import { SILHOUETTE_NAMES, DEFAULT_SILHOUETTE } from "./silhouettes.js";
-import { STANDARD_VALUES, suggestEntity } from "./suggest.js";
+import { STANDARD_VALUES, suggestEntity, scanStandardValues } from "./suggest.js";
 import { assignSides, defaultSide } from "./layout.js";
 
 const COLOR_NAMES = ["0–20 %", "20–40 %", "40–60 %", "60–80 %", "80–100 %"];
@@ -41,7 +41,7 @@ const DEVICE_SCHEMA = [
 const ENTITY_SCHEMA = [
   { name: "battery", required: true, selector: { entity: { filter: { domain: "sensor" } } } },
   { name: "charging_power", selector: { entity: { filter: { domain: "sensor" } } } },
-  { name: "charging_state", selector: { entity: { filter: { domain: "sensor" } } } },
+  { name: "charging_state", selector: { entity: { filter: { domain: ["sensor", "binary_sensor"] } } } },
   { name: "plate", selector: { entity: {} } },
 ];
 
@@ -179,6 +179,9 @@ class CarInfoCardEditor extends LitElement {
         const found = suggestEntity(this.hass, v.type, ids);
         return found ? { ...v, entity: found } : v;
       });
+      // Scan the device: activate every standard value it offers
+      const present = values.map((v) => v.type).filter(Boolean);
+      values = [...values, ...scanStandardValues(this.hass, ids, present)];
     }
     this._commit({ ...this._config, device, entities, values });
   }
@@ -192,6 +195,39 @@ class CarInfoCardEditor extends LitElement {
       values.push({ type, entity });
     }
     this._commit({ ...this._config, values });
+  }
+
+  // Other sensors of the selected device that are not shown yet
+  _otherSensors() {
+    const ids = this._deviceEntities();
+    if (!ids) return [];
+    const used = [...Object.values(this._config.entities), ...this._config.values.map((v) => v.entity)];
+    return ids
+      .filter((id) => /^(sensor|binary_sensor)\./.test(id) && this.hass.states[id] && !used.includes(id))
+      .map((id) => ({ id, name: this._shortName(id) }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  // Values added from the list of other sensors (no type), to tick them off again
+  _isOtherValue(id) {
+    return this._config.values.some((v) => v.entity === id && !v.type);
+  }
+
+  _toggleOther(id, on) {
+    const values = on
+      ? [...this._config.values, { entity: id }]
+      : this._config.values.filter((v) => !(v.entity === id && !v.type));
+    this._commit({ ...this._config, values });
+  }
+
+  // Entity name without the device name in front
+  _shortName(id) {
+    const s = this.hass.states[id];
+    const full = (s && s.attributes.friendly_name) || id;
+    const entry = this.hass.entities && this.hass.entities[id];
+    const device = entry && this.hass.devices && this.hass.devices[entry.device_id];
+    const prefix = device && (device.name_by_user || device.name);
+    return prefix && full.startsWith(prefix + " ") ? full.slice(prefix.length + 1) : full;
   }
 
   _entitiesChanged(ev) {
@@ -442,6 +478,7 @@ class CarInfoCardEditor extends LitElement {
             </div>
           `
         )}
+        ${this._renderOtherSensors(cfg)}
         <div class="add">
           ${this._form(
             this._filterSchema([{ name: "entity", selector: { entity: {} } }]),
@@ -471,6 +508,35 @@ class CarInfoCardEditor extends LitElement {
         <button class="text-button" @click=${this._resetColors} ?disabled=${!cfg.colors}>
           ${this._t("editor.reset_colors")}
         </button>
+      </div>
+    `;
+  }
+
+  // Checkboxes for the device's other sensors: those already shown as own
+  // values stay in the list (ticked), the rest can be added with one tick
+  _renderOtherSensors(cfg) {
+    const shown = cfg.values
+      .filter((v) => !v.type && v.entity && this.hass.states[v.entity])
+      .map((v) => ({ id: v.entity, name: this._shortName(v.entity) }));
+    const ids = this._deviceEntities() || [];
+    const list = [...shown.filter((o) => ids.includes(o.id)), ...this._otherSensors()];
+    if (!list.length) return nothing;
+    return html`
+      <h4>${this._t("editor.other_sensors")}</h4>
+      <div class="quick other">
+        ${list.map(
+          (o) => html`
+            <label title=${o.id}>
+              <input
+                type="checkbox"
+                data-entity=${o.id}
+                .checked=${this._isOtherValue(o.id)}
+                @change=${(ev) => this._toggleOther(o.id, ev.target.checked)}
+              />
+              ${o.name}
+            </label>
+          `
+        )}
       </div>
     `;
   }
@@ -553,6 +619,11 @@ class CarInfoCardEditor extends LitElement {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         gap: 6px 12px;
         margin-bottom: 8px;
+      }
+      h4 {
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin: 16px 0 6px;
       }
       .quick label {
         display: flex;

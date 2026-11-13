@@ -1,6 +1,6 @@
 {
   "name": "car-info-card",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Home Assistant dashboard card: car info with battery segments and charging bolt",
   "scripts": {
     "build": "rollup -c",
