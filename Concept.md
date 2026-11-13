@@ -1,7 +1,7 @@
 # Concept: Car Info Card
 
 ## Goal
-A Home Assistant dashboard card for electric cars: a generic SUV silhouette with a battery in the middle, split into 5 segments of 20 % each (red, orange, yellow, yellow-green, light green; all segments dark green when fully charged), with a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its strength and animation follow the charging power. Important values (odometer, range, charging power, time to full, charging state, target temperature, …) are shown around the car and can be chosen in the card editor. Distribution through the Marketplace (built into Home Assistant since 2026.11, reads the HACS catalog).
+A Home Assistant dashboard card for cars (electric, plug-in hybrid, combustion; combustion cars get a fuel gauge instead of the battery): a generic SUV silhouette with a battery in the middle, split into 5 segments of 20 % each (red, orange, yellow, yellow-green, light green; all segments dark green when fully charged), with a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its strength and animation follow the charging power. Important values (odometer, range, charging power, time to full, charging state, target temperature, …) are shown around the car and can be chosen in the card editor. Distribution through the Marketplace (built into Home Assistant since 2026.11, reads the HACS catalog).
 
 ## Guidelines
 - Code, comments and documentation in English. The card UI follows the Home Assistant language (option `language` to fix it); texts live in `src/translations/<language>.json` (English reference, German), checked by `scripts/check-translations.mjs`.
@@ -24,6 +24,9 @@ The card only needs numeric and state sensors as vehicle integrations usually pr
 | Charging type | `sensor.my_car_charging_type` | `ac`, `dc`, `not_charging` |
 | Target temperature | `sensor.my_car_target_temperature` | °C |
 | Licence plate | `sensor.my_car_licence_plate` | text |
+| Fuel level (combustion, hybrid) | `sensor.my_car_fuel_level` | % or L (then `fuel_capacity`) |
+| Fuel range, total range | `sensor.my_car_fuel_range` | km |
+| Next service, oil level, outside temperature | `sensor.my_car_next_service` | km / % / °C |
 
 Charging states used by at least one common integration: `charging`, `connect_cable`, `ready_for_charging`, `conserving`, `discharging`, `charging_interrupted`. By default only `charging` counts as charging (option `charging_states`). Enum sensors list their possible values in the `options` attribute; the editor offers them for selection.
 

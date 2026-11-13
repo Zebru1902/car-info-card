@@ -17,6 +17,12 @@ const UNAVAILABLE = ["unknown", "unavailable", "none", ""];
 // Battery geometry (viewBox 0 0 220 100)
 const BAT = { x: 12, y: 12, w: 180, h: 76, gap: 6, segments: 5 };
 
+const DRIVES = ["electric", "combustion", "hybrid"];
+
+// Fuel pump icon (Material Design Icons, "gas-station", Apache 2.0)
+const PUMP =
+  "M18,10A1,1 0 0,1 17,9A1,1 0 0,1 18,8A1,1 0 0,1 19,9A1,1 0 0,1 18,10M12,10H6V5H12M19.77,7.23L19.78,7.22L16.06,3.5L15,4.56L17.11,6.67C16.17,7 15.5,7.93 15.5,9A2.5,2.5 0 0,0 18,11.5C18.36,11.5 18.69,11.42 19,11.29V18.5A1,1 0 0,1 18,19.5A1,1 0 0,1 17,18.5V14C17,12.89 16.1,12 15,12H14V5C14,3.89 13.1,3 12,3H6C4.89,3 4,3.89 4,5V21H14V13.5H15.5V18.5A2.5,2.5 0 0,0 18,21A2.5,2.5 0 0,0 20.5,18.5V9C20.5,8.31 20.22,7.68 19.77,7.23Z";
+
 class CarInfoCard extends LitElement {
   static get properties() {
     return {
@@ -45,6 +51,9 @@ class CarInfoCard extends LitElement {
     }
     if (config.language && config.language !== "auto" && !LANGUAGES.includes(config.language)) {
       throw new Error(`language must be auto or one of: ${LANGUAGES.join(", ")}.`);
+    }
+    if (config.drive && config.drive !== "auto" && !DRIVES.includes(config.drive)) {
+      throw new Error(`drive must be auto or one of: ${DRIVES.join(", ")}.`);
     }
     if (config.silhouette && !SILHOUETTES[config.silhouette]) {
       throw new Error(`silhouette must be one of: ${SILHOUETTE_NAMES.join(", ")}.`);
@@ -100,10 +109,34 @@ class CarInfoCard extends LitElement {
   }
 
   _soc() {
-    const s = this._stateObj(this._config.entities.battery);
+    return this._percent(this._config.entities.battery);
+  }
+
+  // Fuel level in %; litres or gallons need the tank size (fuel_capacity)
+  _fuel() {
+    return this._percent(this._config.entities.fuel, this._config.fuel_capacity);
+  }
+
+  _percent(entityId, capacity) {
+    const s = this._stateObj(entityId);
     if (!this._isAvailable(s)) return undefined;
-    const v = parseFloat(s.state);
-    return Number.isFinite(v) ? Math.min(100, Math.max(0, v)) : undefined;
+    let v = parseFloat(s.state);
+    if (!Number.isFinite(v)) return undefined;
+    const unit = (s.attributes.unit_of_measurement || "%").trim();
+    if (unit !== "%") {
+      if (!(capacity > 0)) return undefined;
+      v = (v / capacity) * 100;
+    }
+    return Math.min(100, Math.max(0, v));
+  }
+
+  // electric, combustion or hybrid: the option drive, otherwise by the entities
+  _drive() {
+    const d = this._config.drive;
+    if (DRIVES.includes(d)) return d;
+    const { battery, fuel } = this._config.entities;
+    if (battery && fuel) return "hybrid";
+    return fuel ? "combustion" : "electric";
   }
 
   _powerKw() {
@@ -118,6 +151,7 @@ class CarInfoCard extends LitElement {
   }
 
   _isCharging() {
+    if (this._drive() === "combustion") return false;
     const stateEntity = this._config.entities.charging_state;
     if (stateEntity) {
       const s = this._stateObj(stateEntity);
@@ -150,15 +184,19 @@ class CarInfoCard extends LitElement {
   render() {
     if (!this._config || !this.hass) return nothing;
     const cfg = this._config;
-    if (!cfg.entities.battery) {
+    if (!cfg.entities.battery && !cfg.entities.fuel) {
       return html`<ha-card>
         <div class="hint">
           ${this._t("card.hint")}
         </div>
       </ha-card>`;
     }
+    const drive = this._drive();
     const soc = this._soc();
+    const fuel = this._fuel();
     const level = this._chargeLevel();
+    const main = drive === "combustion" ? fuel : soc;
+    const mainEntity = drive === "combustion" ? cfg.entities.fuel : cfg.entities.battery;
     // Rows without an entity are still being set up in the editor
     const values = cfg.values.filter((v) => v.entity);
     const { left, right } = splitValues(values);
@@ -184,14 +222,18 @@ class CarInfoCard extends LitElement {
               <div
                 class="battery level-${level}"
                 style=${this._batteryStyle()}
-                @click=${() => this._moreInfo(cfg.entities.battery)}
+                data-drive=${drive}
+                @click=${() => this._moreInfo(mainEntity)}
               >
-                ${this._renderBattery(soc, level)}
+                ${drive === "combustion"
+                  ? this._renderTank(fuel)
+                  : this._renderBattery(soc, level, drive === "hybrid" ? fuel : null)}
               </div>
             </div>
-            <div class="soc">${soc === undefined ? "–" : `${Math.round(soc)} %`}</div>
-            ${this._renderBatteryProblem()}
-            ${this._renderStatus(level)}
+            <div class="soc">${main === undefined ? "–" : `${Math.round(main)} %`}</div>
+            ${drive === "hybrid" ? this._renderFuelLine(fuel) : nothing}
+            ${this._renderBatteryProblem(drive)}
+            ${drive === "combustion" ? nothing : this._renderStatus(level)}
           </div>
           <div class="values right">${right.map((v) => this._renderValue(v))}</div>
         </div>
@@ -225,15 +267,34 @@ class CarInfoCard extends LitElement {
 
   // Explains why no battery level is shown: entity missing or not numeric.
   // unknown/unavailable is a normal state and only shows "–".
-  _renderBatteryProblem() {
-    const entity = this._config.entities.battery;
-    const s = this._stateObj(entity);
-    let text;
-    if (!s) text = this._t("card.battery_missing", { entity });
-    else if (this._isAvailable(s) && !Number.isFinite(parseFloat(s.state))) {
-      text = this._t("card.battery_not_numeric", { state: this._formatState(s) });
-    }
-    return text ? html`<div class="problem">${text}</div>` : nothing;
+  _renderBatteryProblem(drive) {
+    const texts = [];
+    const check = (key, prefix) => {
+      const entity = this._config.entities[key];
+      const s = this._stateObj(entity);
+      if (!s) texts.push(this._t(`card.${prefix}_missing`, { entity }));
+      else if (this._isAvailable(s) && !Number.isFinite(parseFloat(s.state))) {
+        texts.push(this._t(`card.${prefix}_not_numeric`, { state: this._formatState(s) }));
+      } else if (
+        key === "fuel" &&
+        this._isAvailable(s) &&
+        (s.attributes.unit_of_measurement || "%").trim() !== "%" &&
+        !(this._config.fuel_capacity > 0)
+      ) {
+        texts.push(this._t("card.fuel_needs_capacity", { unit: s.attributes.unit_of_measurement }));
+      }
+    };
+    if (drive !== "combustion") check("battery", "battery");
+    if (drive !== "electric") check("fuel", "fuel");
+    return texts.map((t) => html`<div class="problem">${t}</div>`);
+  }
+
+  // Hybrid: fuel level as a small line below the battery level
+  _renderFuelLine(fuel) {
+    return html`<div class="fuel-line" @click=${() => this._moreInfo(this._config.entities.fuel)}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d=${PUMP}></path></svg>
+      ${fuel === undefined ? "–" : `${Math.round(fuel)} %`}
+    </div>`;
   }
 
   // Friendly name without the device name in front ("My car Odometer" -> "Odometer")
@@ -270,36 +331,72 @@ class CarInfoCard extends LitElement {
     `;
   }
 
-  _renderBattery(soc, level) {
+  // Five colored segments of 20 % each; all in the "full" color at 100 %
+  _segments(value, geo, level = 0) {
     const colors = resolveColors(this._config.colors);
-    const full = soc !== undefined && Math.round(soc) >= 100;
-    const segW = (BAT.w - BAT.gap * (BAT.segments - 1)) / BAT.segments;
-    const step = 100 / BAT.segments;
-    const current =
-      soc === undefined ? -1 : Math.min(BAT.segments - 1, Math.floor(soc / step));
-
-    const segments = colors.slice(0, BAT.segments).map((segColor, i) => {
-      // When fully charged, all segments take the "full" color
-      const color = full ? colors[BAT.segments] : segColor;
-      const x = BAT.x + i * (segW + BAT.gap);
-      const fill = soc === undefined ? 0 : Math.min(1, Math.max(0, (soc - i * step) / step));
+    const full = value !== undefined && Math.round(value) >= 100;
+    const n = BAT.segments;
+    const segW = (geo.w - geo.gap * (n - 1)) / n;
+    const step = 100 / n;
+    const current = value === undefined ? -1 : Math.min(n - 1, Math.floor(value / step));
+    return colors.slice(0, n).map((segColor, i) => {
+      const color = full ? colors[n] : segColor;
+      const x = geo.x + i * (segW + geo.gap);
+      const fill = value === undefined ? 0 : Math.min(1, Math.max(0, (value - i * step) / step));
       const active = level > 0 && i === current;
       return svg`
-        <rect class="track" x=${x} y=${BAT.y} width=${segW} height=${BAT.h} rx="4"></rect>
+        <rect class="track" x=${x} y=${geo.y} width=${segW} height=${geo.h} rx="4"></rect>
         ${fill > 0
-          ? svg`<rect class="seg ${active ? "active" : ""}" x=${x} y=${BAT.y}
-              width=${segW * fill} height=${BAT.h} rx="4" fill=${color}></rect>`
+          ? svg`<rect class="seg ${active ? "active" : ""}" x=${x} y=${geo.y}
+              width=${segW * fill} height=${geo.h} rx="4" fill=${color}></rect>`
           : nothing}
         ${active && fill < 1
-          ? svg`<rect class="seg-next" x=${x + segW * fill} y=${BAT.y}
-              width=${segW * (1 - fill)} height=${BAT.h} rx="4" fill=${color}></rect>`
+          ? svg`<rect class="seg-next" x=${x + segW * fill} y=${geo.y}
+              width=${segW * (1 - fill)} height=${geo.h} rx="4" fill=${color}></rect>`
           : nothing}
       `;
     });
+  }
 
+  // Combustion car: tank in the battery style, fuel pump instead of the bolt
+  _renderTank(fuel) {
     return html`
       <svg
         viewBox="0 0 220 100"
+        role="img"
+        class="tank"
+        aria-label=${fuel === undefined
+          ? this._t("card.fuel_unknown")
+          : this._t("card.fuel", { level: Math.round(fuel) })}
+      >
+        <rect class="shell-bg" x="4" y="4" width="212" height="92" rx="14"></rect>
+        ${this._segments(fuel, { x: 14, y: 14, w: 192, h: 72, gap: 6 })}
+        <rect class="shell" x="4" y="4" width="212" height="92" rx="14"></rect>
+        <path class="pump" transform="translate(74 14) scale(3)" d=${PUMP}></path>
+      </svg>
+    `;
+  }
+
+  // Hybrid: slim fuel bar below the battery
+  _fuelBar(fuel) {
+    const colors = resolveColors(this._config.colors);
+    const n = BAT.segments;
+    const color =
+      fuel === undefined ? "none" : Math.round(fuel) >= 100 ? colors[n] : colors[Math.min(n - 1, Math.floor(fuel / (100 / n)))];
+    return svg`
+      <rect class="shell-bg fuel-plate" x="0" y="102" width="206" height="36" rx="12"></rect>
+      <path class="pump small" transform="translate(6 108) scale(1.2)" d=${PUMP}></path>
+      <rect class="track" x="36" y="114" width="164" height="16" rx="8"></rect>
+      ${fuel ? svg`<rect class="fuel-fill" x="36" y="114" width=${(164 * fuel) / 100} height="16" rx="8" fill=${color}></rect>` : nothing}
+    `;
+  }
+
+  _renderBattery(soc, level, fuel = null) {
+    const segments = this._segments(soc, BAT, level);
+
+    return html`
+      <svg
+        viewBox=${fuel === null ? "0 0 220 100" : "0 0 220 140"}
         role="img"
         aria-label=${soc === undefined
           ? this._t("card.soc_unknown")
@@ -316,6 +413,7 @@ class CarInfoCard extends LitElement {
             stroke-linejoin="round"
           ></path>
         </g>
+        ${fuel === null ? nothing : this._fuelBar(fuel)}
       </svg>
     `;
   }
@@ -557,6 +655,35 @@ class CarInfoCard extends LitElement {
         font-weight: 600;
         line-height: 1.2;
         margin-top: 4px;
+      }
+      .pump {
+        fill: var(--cic-bolt-off);
+        stroke: var(--cic-bg);
+        stroke-width: 1.2;
+        paint-order: stroke;
+      }
+      .fuel-plate {
+        stroke: var(--cic-text);
+        stroke-width: 2;
+        stroke-opacity: 0.35;
+      }
+      .pump.small {
+        fill: var(--cic-secondary);
+        stroke: none;
+      }
+      .fuel-line {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--cic-secondary);
+        cursor: pointer;
+      }
+      .fuel-line svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
       }
       .problem {
         font-size: 0.8rem;

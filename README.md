@@ -1,17 +1,20 @@
 # Car Info Card
 
-A Home Assistant dashboard card for electric cars: a generic SUV silhouette with a battery in the middle, split into 5 segments of 20 % each (red, orange, yellow, yellow-green, light green; all dark green when full), and a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its pulse, glow and size follow the charging power. Any values you like (odometer, range, charging power, time to full, target temperature, …) are shown around the car.
+A Home Assistant dashboard card for cars – electric, plug-in hybrid or combustion: a generic car silhouette with a battery or fuel gauge in the middle. For electric cars the battery is split into 5 segments of 20 % each (red, orange, yellow, yellow-green, light green; all dark green when full), with a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its pulse, glow and size follow the charging power. Any values you like (odometer, range, charging power, time to full, target temperature, …) are shown around the car.
 
-> Status: **0.2.0**, early version. Not yet tested in a real Home Assistant during charging.
+> Status: **0.4.0**, early version. Tested in a real Home Assistant with one electric car integration; combustion cars and hybrids only with example data so far.
 
 ![Unplugged](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/unplugged-light.png)
 ![AC charging](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/charging-ac-light.png)
 ![DC charging, dark theme](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/charging-dc-dark.png)
+![Combustion car](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/combustion-light.png)
+![Plug-in hybrid, dark theme](https://raw.githubusercontent.com/Zebru1902/car-info-card/main/docs/screenshots/hybrid-dark.png)
 
 ## Features
 
 - Battery with 5 colour segments; the partly filled segment shows the exact level and blinks while charging
 - All segments turn dark green only when the battery is full, so 85 % never looks full
+- Combustion cars get a fuel gauge, plug-in hybrids a battery plus a fuel bar; the drive is detected automatically
 - Charging bolt in 4 power levels (default limits 3.7 / 11 / 50 kW, configurable)
 - Works with any integration: all entities are assigned in the configuration
 - Values around the car: general information on the left, charging on the right; two columns below the car on narrow cards
@@ -72,10 +75,13 @@ values:
 | `show_name` | `true` | Show the name in the header |
 | `show_plate` | `true` | Show the licence plate in the header (needs `entities.plate`) |
 | `device` | – | Device ID; only used by the editor to show just this device's entities in the pickers |
-| `entities.battery` | – | State of charge in % (required) |
+| `entities.battery` | – | State of charge in % (electric car, hybrid) |
+| `entities.fuel` | – | Fuel level in %, or in litres/gallons with `fuel_capacity` (combustion car, hybrid) |
 | `entities.charging_power` | – | Charging power; W, kW and MW are converted |
 | `entities.charging_state` | – | Charging state (text sensor, or an on/off `binary_sensor` where "on" means charging); without it, power > 0 counts as charging |
 | `entities.plate` | – | Licence plate |
+| `drive` | `auto` | `electric`, `combustion` or `hybrid`; automatic: battery only = electric, fuel only = combustion, both = hybrid |
+| `fuel_capacity` | – | Tank size, needed when the fuel level is reported in litres or gallons |
 | `charging_states` | `[charging]` | States of `charging_state` that count as charging |
 | `power_levels` | `[3.7, 11, 50]` | kW limits of bolt levels 1–3; above that level 4 |
 | `colors` | red, orange, yellow, yellow-green, light green, dark green | 5 segment colors (0–20 % … 80–100 %) plus an optional 6th color used for all segments when fully charged |

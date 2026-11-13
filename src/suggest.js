@@ -2,6 +2,11 @@
 // using device class, unit, enum options and words in the entity ID and name.
 // Only a suggestion for the editor; users can always pick another entity.
 
+const FUEL_WORDS = /fuel|tank|kraftstoff|benzin|diesel|petrol|gasoline/;
+const isRange = (s) =>
+  has(s, /range|reichweite|autonomy|distance.?to.?empty|\bdte\b/) &&
+  (dc(s) === "distance" || ["km", "mi"].includes(unit(s)));
+
 const words = (s) => `${s.entity_id} ${s.attributes.friendly_name || ""}`.toLowerCase();
 const dc = (s) => s.attributes.device_class;
 const unit = (s) => s.attributes.unit_of_measurement;
@@ -36,9 +41,34 @@ export const PURPOSES = {
   },
   range: {
     match: (s) =>
-      has(s, /range|reichweite|autonomy|distance.?to.?empty|\bdte\b/) &&
-      (dc(s) === "distance" || ["km", "mi"].includes(unit(s))),
+      isRange(s) && !has(s, FUEL_WORDS) && !has(s, /total|gesamt|combined|kombiniert/),
     prefer: (s) => has(s, /electric|elektr|\bev\b|ev_|battery|batterie/),
+  },
+  fuel: {
+    match: (s) =>
+      (["%", "L", "l", "gal"].includes(unit(s)) || ["volume", "volume_storage"].includes(dc(s))) &&
+      has(s, FUEL_WORDS) &&
+      !has(s, /range|reichweite|consumption|verbrauch|price|preis|cost|kosten|capacity|kapazit|distance|economy/),
+    prefer: (s) => unit(s) === "%",
+  },
+  fuel_range: {
+    match: (s) => isRange(s) && has(s, FUEL_WORDS),
+  },
+  total_range: {
+    match: (s) => isRange(s) && has(s, /total|gesamt|combined|kombiniert/),
+  },
+  service: {
+    match: (s) =>
+      has(s, /service|inspection|inspektion|wartung|maintenance|oil.?change|ölwechsel|oelwechsel/) &&
+      !has(s, /oil.?level|ölstand|oelstand/),
+  },
+  oil_level: {
+    match: (s) => has(s, /oil.?level|ölstand|oelstand|motoröl|motoroel|engine.?oil/) && !has(s, /change|wechsel|service/),
+  },
+  outside_temperature: {
+    match: (s) =>
+      (dc(s) === "temperature" || ["°C", "°F"].includes(unit(s))) &&
+      has(s, /outside|outdoor|ambient|exterior|außen|aussen/),
   },
   charging_power_value: {
     match: (s) => (dc(s) === "power" || ["W", "kW"].includes(unit(s))) && has(s, /charg|lade/),
@@ -57,18 +87,57 @@ export const PURPOSES = {
   },
 };
 
-// Standard values the editor offers as checkboxes, in display order
-export const STANDARD_VALUES = [
-  "odometer",
-  "range",
-  "charging_power_value",
-  "time_to_full",
-  "charging_state_value",
-  "charging_type",
-  "target_temperature",
-];
+// Standard values the editor offers as checkboxes, per drive, in display order
+export const STANDARD_VALUES_BY_DRIVE = {
+  electric: [
+    "odometer",
+    "range",
+    "charging_power_value",
+    "time_to_full",
+    "charging_state_value",
+    "charging_type",
+    "target_temperature",
+  ],
+  combustion: [
+    "odometer",
+    "range",
+    "fuel_range",
+    "fuel_level_value",
+    "service",
+    "oil_level",
+    "outside_temperature",
+    "target_temperature",
+  ],
+  hybrid: [
+    "odometer",
+    "range",
+    "fuel_range",
+    "total_range",
+    "charging_power_value",
+    "time_to_full",
+    "charging_state_value",
+    "charging_type",
+    "service",
+    "target_temperature",
+  ],
+};
 
-const purposeOf = (type) => (type === "charging_state_value" ? "charging_state" : type);
+// All standard value types (for older configs and the layout)
+export const STANDARD_VALUES = [...new Set(Object.values(STANDARD_VALUES_BY_DRIVE).flat())];
+
+export const standardValues = (drive) =>
+  STANDARD_VALUES_BY_DRIVE[drive] || STANDARD_VALUES_BY_DRIVE.electric;
+
+const purposeOf = (type) =>
+  ({ charging_state_value: "charging_state", fuel_level_value: "fuel" })[type] || type;
+
+// Drive of a device from its sensors: battery and fuel = hybrid
+export function detectDrive(hass, ids) {
+  const battery = !!suggestEntity(hass, "battery", ids);
+  const fuel = !!suggestEntity(hass, "fuel", ids);
+  if (battery && fuel) return "hybrid";
+  return fuel ? "combustion" : "electric";
+}
 
 // entityIds: entities to search (e.g. of the selected device); undefined = all sensors
 export function suggestEntity(hass, type, entityIds, exclude = []) {
@@ -101,11 +170,13 @@ export function findCarDevice(hass) {
   let bestScore = 0;
   for (const device of Object.keys(hass.devices)) {
     const ids = entitiesOfDevice(hass, device);
-    if (!ids || !suggestEntity(hass, "battery", ids)) continue;
+    if (!ids) continue;
     const has = (type) => (suggestEntity(hass, type, ids) ? 1 : 0);
-    if (!has("odometer") && !has("range")) continue;
+    if (!has("battery") && !has("fuel")) continue;
+    if (!has("odometer") && !has("range") && !has("fuel_range")) continue;
     const score =
-      2 * has("odometer") + 2 * has("range") + has("charging_power_value") + has("charging_state");
+      2 * has("odometer") + 2 * Math.max(has("range"), has("fuel_range")) +
+      has("charging_power_value") + has("charging_state");
     if (score > bestScore) {
       best = device;
       bestScore = score;
@@ -119,21 +190,17 @@ export function suggestSetup(hass) {
   const device = findCarDevice(hass);
   if (!device) return { entities: {}, values: [] };
   const ids = entitiesOfDevice(hass, device);
-  const entities = {};
-  for (const key of ["battery", "charging_power", "charging_state"]) {
-    const found = suggestEntity(hass, key, ids);
-    if (found) entities[key] = found;
-  }
-  const values = scanStandardValues(hass, ids);
+  const entities = mainEntities(hass, ids);
+  const values = scanStandardValues(hass, ids, [], detectDrive(hass, ids));
   const d = hass.devices[device];
   return { name: d.name_by_user || d.name, device, entities, values };
 }
 
 // All standard values the device offers, each with its entity
-export function scanStandardValues(hass, ids, present = []) {
+export function scanStandardValues(hass, ids, present = [], drive = "electric") {
   const values = [];
   const used = [];
-  for (const type of STANDARD_VALUES) {
+  for (const type of standardValues(drive)) {
     if (present.includes(type)) continue;
     const entity = suggestEntity(hass, type, ids, used);
     if (entity) {
@@ -142,4 +209,20 @@ export function scanStandardValues(hass, ids, present = []) {
     }
   }
   return values;
+}
+
+// Main entities of a device by its drive: battery and charging for electric
+// cars, fuel for combustion cars, both for hybrids
+export const MAIN_KEYS = ["battery", "fuel", "charging_power", "charging_state"];
+
+export function mainEntities(hass, ids) {
+  const drive = detectDrive(hass, ids);
+  const keys =
+    drive === "combustion" ? ["fuel"] : drive === "hybrid" ? MAIN_KEYS : ["battery", "charging_power", "charging_state"];
+  const entities = {};
+  for (const key of keys) {
+    const found = suggestEntity(hass, key, ids);
+    if (found) entities[key] = found;
+  }
+  return entities;
 }
