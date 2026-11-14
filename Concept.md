@@ -20,7 +20,7 @@ The card only needs numeric and state sensors as vehicle integrations usually pr
 | Charging state | `sensor.my_car_charging_state` | `connect_cable` |
 | Odometer | `sensor.my_car_odometer` | km |
 | Range | `sensor.my_car_range` | km |
-| Time to full | `sensor.my_car_time_to_full` | ⚠️ unit differs between integrations |
+| Time to full | `sensor.my_car_time_to_full` | timestamp (e.g. built-in Škoda integration) or duration in min/h; shown as "2 h 15 min · 16:45" |
 | Charging type | `sensor.my_car_charging_type` | `ac`, `dc`, `not_charging` |
 | Target temperature | `sensor.my_car_target_temperature` | °C |
 | Licence plate | `sensor.my_car_licence_plate` | text |
@@ -48,5 +48,5 @@ Checked on 2026-11-11 at https://contributors.home-assistant.io/marketplace/ (re
 
 ## Status (version 0.4.2)
 - Released on GitHub, installable as a custom repository via the `marketplace_repository` My link.
-- Tested in a real Home Assistant: one electric car (unplugged; editor, device scan) and one combustion car of another integration (all entities detected automatically).
-- Open: test while charging (bolt levels, value and unit of the time to full), a plug-in hybrid in a real Home Assistant, catalog entry (pull request to `hacs/default`).
+- Tested in a real Home Assistant: one electric car (unplugged and while charging AC; editor, device scan) and one combustion car of another integration (all entities detected automatically).
+- Open: DC charging (higher bolt levels), a plug-in hybrid in a real Home Assistant, catalog entry (pull request to `hacs/default`).

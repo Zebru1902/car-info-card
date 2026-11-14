@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Car Info Card social preview</title>
+<!-- Source of docs/social/social-preview.png (1280 × 640, GitHub social preview) -->
+<style>
+  html, body { margin: 0; width: 1280px; height: 640px; overflow: hidden; }
+  body {
+    font-family: Roboto, "Noto Sans", Arial, sans-serif;
+    background: radial-gradient(circle at 10% 15%, #1f3a2a 0, transparent 45%),
+                radial-gradient(circle at 95% 95%, #1b2a40 0, transparent 55%), #101214;
+    color: #eceff1;
+    display: grid;
+    grid-template-columns: 440px 1fr;
+    gap: 36px;
+    box-sizing: border-box;
+    padding: 44px 48px;
+    align-items: center;
+  }
+  h1 { margin: 0; font-size: 62px; line-height: 1.05; font-weight: 700; letter-spacing: -0.5px; }
+  .sub { margin: 14px 0 0; font-size: 27px; line-height: 1.3; color: #b0bec5; }
+  .tags { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 28px; }
+  .tag { font-size: 21px; padding: 7px 16px; border-radius: 999px; background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.16); }
+  .tag.ev { border-color: #7cb342; color: #c5e1a5; }
+  .install { margin-top: 26px; font-size: 19px; color: #90a4ae; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .cards img { width: 100%; display: block; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.55); }
+  .cards .big { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+  <div>
+    <h1>Car Info Card</h1>
+    <p class="sub">Home Assistant dashboard card for your car</p>
+    <div class="tags">
+      <span class="tag ev">⚡ Electric · charging bolt</span>
+      <span class="tag">Plug-in hybrid</span>
+      <span class="tag">⛽ Combustion · fuel gauge</span>
+      <span class="tag">Auto-setup editor</span>
+    </div>
+    <p class="install">Install via the Home Assistant Marketplace</p>
+  </div>
+  <div class="cards">
+    <img class="big" src="../screenshots/charging-dc-dark.png" alt="" />
+    <img src="../screenshots/hybrid-dark.png" alt="" />
+    <img src="../screenshots/combustion-light.png" alt="" />
+  </div>
+</body>
+</html>
