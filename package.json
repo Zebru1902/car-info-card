@@ -1,6 +1,6 @@
 {
   "name": "car-info-card",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Home Assistant dashboard card for cars: battery or fuel gauge, charging bolt and configurable values",
   "scripts": {
     "build": "rollup -c",

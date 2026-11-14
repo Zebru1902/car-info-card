@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.3 – 2026-11-14
+
+- Time to full shows the remaining time and the clock time (e.g. "2 h 15 min · 16:45"), whether the integration reports a timestamp or a duration
+- The charging state is no longer a standard value: it is already shown below the battery; older cards hide the duplicate
+- README: charging tested with the built-in Škoda integration
+
 ## 0.4.2 – 2026-11-13
 
 - README and Marketplace page: screenshot gallery with electric car, plug-in hybrid and combustion car

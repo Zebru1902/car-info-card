@@ -5,7 +5,7 @@
 
 A Home Assistant dashboard card for cars – electric, plug-in hybrid or combustion: a generic car silhouette with a battery or fuel gauge in the middle. For electric cars the battery is split into 5 segments of 20 % each (red, orange, yellow, yellow-green, light green; all dark green when full), with a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its pulse, glow and size follow the charging power. Any values you like (odometer, range, charging power, time to full, target temperature, …) are shown around the car.
 
-> Status: **0.4.2**, early version. Tested in a real Home Assistant with one electric car and one combustion car (two different integrations, all entities detected automatically); plug-in hybrids only with example data so far.
+> Status: **0.4.3**, early version. Tested in a real Home Assistant with one electric car and one combustion car (two different integrations, all entities detected automatically); plug-in hybrids only with example data so far.
 
 | Electric car, charging | Plug-in hybrid | Combustion car |
 |:---:|:---:|:---:|
@@ -18,6 +18,7 @@ A Home Assistant dashboard card for cars – electric, plug-in hybrid or combust
 - Battery with 5 colour segments; the partly filled segment shows the exact level and blinks while charging
 - All segments turn dark green only when the battery is full, so 85 % never looks full
 - Combustion cars get a fuel gauge, plug-in hybrids a battery plus a fuel bar; the drive is detected automatically
+- Time to full as remaining time and clock time, e.g. "2 h 15 min · 16:45"
 - Charging bolt in 4 power levels (default limits 3.7 / 11 / 50 kW, configurable)
 - Works with any integration: all entities are assigned in the configuration
 - Values around the car: general information on the left, charging on the right; two columns below the car on narrow cards
@@ -30,7 +31,7 @@ A Home Assistant dashboard card for cars – electric, plug-in hybrid or combust
 
 | Integration | Drive | Result |
 |---|---|---|
-| [Škoda](https://www.home-assistant.io/integrations/skoda) (built-in Home Assistant integration) | Electric | Works; tested unplugged, charging not tested yet |
+| [Škoda](https://www.home-assistant.io/integrations/skoda) (built-in Home Assistant integration) | Electric | Works; tested unplugged and while charging (AC) |
 | [VW Group Connect](https://github.com/its-me-prash/vwgroup-connect-ha) (Marketplace) | Combustion | Works; all entities detected automatically |
 
 Using the card with another integration? Please tell us in an [issue](https://github.com/Zebru1902/car-info-card/issues) whether it worked and which entities had to be chosen by hand, so the list and the automatic detection can grow.

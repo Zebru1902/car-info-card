@@ -8,7 +8,7 @@ import {
 } from "./const.js";
 import { localize, browserLanguageString, LANGUAGES } from "./localize.js";
 import { SILHOUETTES, SILHOUETTE_NAMES, DEFAULT_SILHOUETTE } from "./silhouettes.js";
-import { suggestSetup } from "./suggest.js";
+import { suggestSetup, PURPOSES } from "./suggest.js";
 import { splitValues } from "./layout.js";
 import "./car-info-card-editor.js";
 
@@ -198,7 +198,9 @@ class CarInfoCard extends LitElement {
     const main = drive === "combustion" ? fuel : soc;
     const mainEntity = drive === "combustion" ? cfg.entities.fuel : cfg.entities.battery;
     // Rows without an entity are still being set up in the editor
-    const values = cfg.values.filter((v) => v.entity);
+    // The charging state is already shown below the battery; older cards got it
+    // as a standard value too, which is skipped here
+    const values = cfg.values.filter((v) => v.entity && v.type !== "charging_state_value");
     const { left, right } = splitValues(values);
     const plate = this._stateObj(cfg.entities.plate);
     const showName = cfg.show_name !== false && !!cfg.name;
@@ -309,6 +311,54 @@ class CarInfoCard extends LitElement {
     return full;
   }
 
+  // Time to full: remaining time and clock time instead of a date or plain minutes
+  _formatValue(item, stateObj) {
+    const isTimeToFull =
+      item.type === "time_to_full" || PURPOSES.time_to_full.match(stateObj);
+    if (isTimeToFull && this._isAvailable(stateObj)) {
+      const minutes = this._minutesLeft(stateObj);
+      if (minutes !== undefined) return this._formatRemaining(minutes);
+    }
+    return this._formatState(stateObj);
+  }
+
+  // Minutes until full from a timestamp or a duration sensor; undefined if unknown
+  _minutesLeft(s) {
+    const unit = (s.attributes.unit_of_measurement || "").trim();
+    if (s.attributes.device_class === "timestamp" || (!unit && isNaN(Number(s.state)))) {
+      const end = Date.parse(s.state);
+      if (!Number.isFinite(end)) return undefined;
+      return Math.max(0, Math.round((end - Date.now()) / 60000));
+    }
+    const v = parseFloat(s.state);
+    if (!Number.isFinite(v)) return undefined;
+    const factor = { s: 1 / 60, min: 1, h: 60, d: 1440 }[unit];
+    return factor === undefined ? undefined : Math.max(0, Math.round(v * factor));
+  }
+
+  // "2 h 15 min · 16:45"; more than a day ahead also shows the weekday
+  _formatRemaining(minutes) {
+    if (minutes <= 0) return "0 min";
+    const d = Math.floor(minutes / 1440);
+    const h = Math.floor((minutes % 1440) / 60);
+    const m = minutes % 60;
+    const parts = [];
+    if (d) parts.push(`${d} d`);
+    if (h) parts.push(`${h} h`);
+    if (m && !d) parts.push(`${m} min`);
+    const lang = (this.hass.locale && this.hass.locale.language) || this.hass.language || undefined;
+    const end = new Date(Date.now() + minutes * 60000);
+    const opts = { hour: "numeric", minute: "2-digit" };
+    if (minutes >= 1440) opts.weekday = "short";
+    let clock;
+    try {
+      clock = end.toLocaleTimeString(lang, opts);
+    } catch (e) {
+      clock = end.toLocaleTimeString(undefined, opts);
+    }
+    return `${parts.join(" ")} · ${clock}`;
+  }
+
   _renderValue(item) {
     const stateObj = this._stateObj(item.entity);
     const name = item.name || (stateObj ? this._entityName(stateObj) : item.entity);
@@ -325,7 +375,7 @@ class CarInfoCard extends LitElement {
           : nothing}
         <div class="text">
           <span class="label">${name}</span>
-          <span class="state">${stateObj ? this._formatState(stateObj) : this._t("card.not_found")}</span>
+          <span class="state">${stateObj ? this._formatValue(item, stateObj) : this._t("card.not_found")}</span>
         </div>
       </div>
     `;

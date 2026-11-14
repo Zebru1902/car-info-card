@@ -12,7 +12,6 @@ const ALL_STANDARD = [
   { type: "range", entity: P + "range" },
   { type: "charging_power_value", entity: P + "charging_power" },
   { type: "time_to_full", entity: P + "time_to_full" },
-  { type: "charging_state_value", entity: P + "charging_state" },
   { type: "charging_type", entity: P + "charging_type" },
   { type: "target_temperature", entity: P + "target_temperature" },
 ];
@@ -184,6 +183,33 @@ try {
     await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light" }));
   });
 
+  // 6e. Time to full as remaining time and clock time; old charging state value hidden
+  await step("time to full", async () => {
+    const show = (state, attrs) => page.evaluate(async ([st, at]) => {
+      const card = document.querySelector("car-info-card");
+      const id = "sensor.my_car_time_to_full";
+      card.hass = { ...card.hass, states: { ...card.hass.states,
+        [id]: { entity_id: id, state: st, attributes: { friendly_name: "My car Time to full", ...at } } } };
+      await card.updateComplete;
+      return [...card.shadowRoot.querySelectorAll(".value .state")].map((e) => e.textContent.trim());
+    }, [state, attrs]);
+    await page.evaluate(() => window.render({ scenario: "charging_ac", theme: "light", width: 560,
+      config: { values: [{ type: "time_to_full", entity: "sensor.my_car_time_to_full" },
+        { type: "charging_state_value", entity: "sensor.my_car_charging_state" }] } }));
+    // the charging state is only shown below the battery
+    assert.equal(await page.locator("car-info-card .value").count(), 1);
+    // duration in minutes (155 min)
+    assert.match((await show("155", { unit_of_measurement: "min" }))[0], /^2 h 35 min · \d{1,2}:\d{2}/);
+    // timestamp as delivered by some integrations
+    const inMinutes = (m) => new Date(Date.now() + m * 60000 + 20000).toISOString();
+    assert.match((await show(inMinutes(90), { device_class: "timestamp" }))[0], /^1 h 30 min · /);
+    assert.match((await show(inMinutes(45), { device_class: "timestamp" }))[0], /^45 min · /);
+    assert.match((await show(inMinutes(26 * 60), { device_class: "timestamp" }))[0], /^1 d 2 h · /);
+    assert.equal((await show(new Date(Date.now() - 60000).toISOString(), { device_class: "timestamp" }))[0], "0 min");
+    assert.equal((await show("unknown", { device_class: "timestamp" }))[0], "–");
+    await page.evaluate(() => window.renderEditor({ scenario: "unplugged", theme: "light" }));
+  });
+
   // 7. Show or hide name and licence plate separately
   await step("name and plate", async () => {
     const header = () => page.evaluate(() => {
@@ -283,8 +309,7 @@ try {
       { type: "range", entity: P + "range" },
       { type: "charging_power_value", entity: P + "charging_power" },
       { type: "time_to_full", entity: P + "time_to_full" },
-      { type: "charging_state_value", entity: P + "charging_state" },
-      { type: "charging_type", entity: P + "charging_type" },
+          { type: "charging_type", entity: P + "charging_type" },
       { type: "target_temperature", entity: P + "target_temperature" },
     ]);
     for (const type of ["odometer", "range", "charging_power_value", "time_to_full"]) {
@@ -293,9 +318,9 @@ try {
     // general values left, charging values right
     const side = (cls) => page.locator(`car-info-card .values.${cls} .label`).allTextContents();
     assert.deepEqual(await side("left"), ["Odometer", "Range", "Target temperature"]);
-    assert.deepEqual(await side("right"), ["Charging power", "Time to full", "Charging state", "Charging type"]);
+    assert.deepEqual(await side("right"), ["Charging power", "Time to full", "Charging type"]);
     assert.deepEqual(await editor.locator(".value-row .badge").allTextContents(),
-      ["left · 1", "left · 2", "right · 3", "right · 4", "right · 5", "right · 6", "left · 7"]);
+      ["left · 1", "left · 2", "right · 3", "right · 4", "right · 5", "left · 6"]);
 
     // more sensors of the device, not shown yet, can be ticked
     const other = (id) => editor.locator(`.other input[data-entity="${id}"]`);
@@ -311,7 +336,7 @@ try {
     const swap = (i) => editor.locator(".value-row").nth(i).locator("button[title='Other side']").click();
     await swap(0);
     assert.equal((await cfg()).values[0].position, "right");
-    assert.deepEqual(await side("right"), ["Odometer", "Charging power", "Time to full", "Charging state", "Charging type"]);
+    assert.deepEqual(await side("right"), ["Odometer", "Charging power", "Time to full", "Charging type"]);
     await swap(0);
     assert.equal("position" in (await cfg()).values[0], false);
     assert.deepEqual(await side("left"), ["Odometer", "Range", "Target temperature"]);
@@ -395,7 +420,6 @@ try {
     assert.deepEqual(c.values.map((v) => [v.type, v.entity.replace("sensor.hybrid_car_", "")]), [
       ["odometer", "odometer"], ["range", "electric_range"], ["fuel_range", "fuel_range"],
       ["total_range", "total_range"], ["charging_power_value", "charging_power"],
-      ["charging_state_value", "charging_state"],
     ]);
     assert.equal(await page.locator("car-info-card .battery[data-drive=hybrid]").count(), 1);
     assert.equal(await page.locator("car-info-card .soc").textContent(), "60 %");
