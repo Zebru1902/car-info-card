@@ -44,9 +44,9 @@ Checked on 2026-11-11 at https://contributors.home-assistant.io/marketplace/ (re
 1. Prototype (Lit, single JS file), preview via Playwright screenshots. ✅
 2. Card editor (values, entities, charging levels, colors). ✅
 3. Test in a real Home Assistant during a charging session.
-4. README, `hacs.json`, release, catalog entry. (README, `hacs.json`, workflows ✅; release and catalog open)
+4. README, `hacs.json`, release, catalog entry. ✅ (in the default catalog via hacs/default#14154)
 
-## Status (version 0.4.2)
-- Released on GitHub, installable as a custom repository via the `marketplace_repository` My link.
+## Status (version 0.4.4)
+- Released on GitHub and in the default Marketplace/HACS catalog (hacs/default#14154).
 - Tested in a real Home Assistant: one electric car (unplugged and while charging AC; editor, device scan) and one combustion car of another integration (all entities detected automatically).
-- Open: DC charging (higher bolt levels), a plug-in hybrid in a real Home Assistant, catalog entry (pull request to `hacs/default`).
+- Open: DC charging (higher bolt levels), a plug-in hybrid in a real Home Assistant.
