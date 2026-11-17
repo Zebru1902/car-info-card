@@ -5,7 +5,7 @@
 
 A Home Assistant dashboard card for cars – electric, plug-in hybrid or combustion: a generic car silhouette with a battery or fuel gauge in the middle. For electric cars the battery is split into 5 segments of 20 % each (red, orange, yellow, yellow-green, light green; all dark green when full), with a lightning bolt inside. The bolt is grey while the car is not charging and green while it charges; its pulse, glow and size follow the charging power. Any values you like (odometer, range, charging power, time to full, target temperature, …) are shown around the car.
 
-> Status: **0.4.3**, early version. Tested in a real Home Assistant with one electric car and one combustion car (two different integrations, all entities detected automatically); plug-in hybrids only with example data so far.
+> Status: **0.4.4**, early version, in the default Marketplace catalog. Tested in a real Home Assistant with one electric car and one combustion car (two different integrations, all entities detected automatically); plug-in hybrids only with example data so far.
 
 | Electric car, charging | Plug-in hybrid | Combustion car |
 |:---:|:---:|:---:|
@@ -39,11 +39,21 @@ Using the card with another integration? Please tell us in an [issue](https://gi
 <!-- ha-marketplace:exclude-start -->
 ## Installation
 
-### Marketplace
+### Marketplace (recommended)
+
+The card is in the default catalog of the Home Assistant Marketplace (HACS before Home Assistant 2026.11):
+
+1. Open **Settings → Marketplace** (or **HACS**).
+2. Search for **Car Info Card** and download it.
+3. Reload the browser, then add the card to a dashboard: **Add card → Car Info Card**.
+
+Updates appear under **Settings → Updates**.
+
+### Direct link
 
 [![Open your Home Assistant instance and open a repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=Zebru1902&repository=car-info-card&category=plugin)
 
-The link opens this repository in the Marketplace of your Home Assistant (2026.11 or later) and offers to add it. The card is not in the default catalog yet.
+Opens the card in the Marketplace of your Home Assistant (2026.11 or later) without searching.
 
 ### Manual
 

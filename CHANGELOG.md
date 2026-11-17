@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.4 – 2026-11-17
+
+- The card is in the default Marketplace (HACS) catalog
+- README: installation leads with searching for "Car Info Card" in the Marketplace; the direct link and the manual steps remain as fallbacks
+
 ## 0.4.3 – 2026-11-14
 
 - Time to full shows the remaining time and the clock time (e.g. "2 h 15 min · 16:45"), whether the integration reports a timestamp or a duration
